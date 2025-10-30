@@ -124,12 +124,15 @@ const VideoMonitor = ({
   }
 
   return (
-    <Card className="h-full">
-      <CardHeader className="px-3 sm:px-6">
+    <Card className="h-full glass border-white/20 dark:border-white/10 shadow-xl overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
+      <CardHeader className="px-3 sm:px-6 pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center space-x-2">
-            <Video className="h-4 w-4 sm:h-5 sm:w-5" />
-            <span className="text-sm sm:text-base">Camera Giao Thông</span>
+          <CardTitle className="flex items-center space-x-2 text-base sm:text-lg">
+            <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg shadow-md">
+              <Video className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+            </div>
+            <span>Camera Giao Thông</span>
           </CardTitle>
         </div>
       </CardHeader>
@@ -154,98 +157,144 @@ const VideoMonitor = ({
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{
                     opacity: 1,
-                    scale: isSelected ? 1.05 : 1,
-                    transition: { duration: 0.3 },
+                    scale: isSelected ? 1.03 : 1,
+                    transition: { duration: 0.3, ease: "easeOut" },
                   }}
                   exit={{ opacity: 0, scale: 0.9 }}
-                  whileHover={{ scale: 1.02 }}
-                  className={`relative overflow-hidden rounded-xl border-2 transition-all duration-300 cursor-pointer inline-block w-full max-w-sm mx-auto ${
+                  whileHover={{ scale: 1.02, y: -4 }}
+                  className={`group relative overflow-hidden rounded-2xl border-2 transition-all duration-300 cursor-pointer inline-block w-full max-w-sm mx-auto shadow-lg hover:shadow-2xl ${
                     isSelected
-                      ? "border-blue-500 shadow-lg shadow-blue-500/25"
-                      : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                      ? "border-blue-500 shadow-blue-500/30 ring-4 ring-blue-500/20"
+                      : "border-white/20 dark:border-white/10 hover:border-blue-400/50"
                   }`}
                   onClick={() => {
                     setModalRoadName(roadName);
                     setModalOpen(true);
                   }}
                 >
+                  {/* Gradient overlay for selected state */}
+                  {isSelected && (
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 pointer-events-none z-10" />
+                  )}
+
                   {/* Video Frame (responsive) */}
-                  <div className="relative w-full max-w-sm mx-auto aspect-[3/2] bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                  <div className="relative w-full max-w-sm mx-auto aspect-[3/2] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 overflow-hidden">
                     {frame?.frame ? (
                       <img
                         src={frame.frame}
                         alt={`Camera ${roadName}`}
-                        className="w-full h-full object-contain block"
+                        className="w-full h-full object-contain block transition-transform duration-300 group-hover:scale-105"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <Video className="h-8 w-8 sm:h-12 sm:w-12 text-gray-400" />
+                        <div className="relative">
+                          <Video className="h-8 w-8 sm:h-12 sm:w-12 text-gray-400 animate-pulse" />
+                          <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-xl animate-pulse" />
+                        </div>
                       </div>
                     )}
 
                     {/* Click to expand hint */}
-                    <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors duration-200 flex items-center justify-center opacity-0 hover:opacity-100">
-                      <div className="bg-white/90 dark:bg-gray-900/90 text-gray-900 dark:text-white px-2 py-1 sm:px-3 sm:py-2 rounded-lg text-xs sm:text-sm font-medium backdrop-blur-sm">
-                        Click để phóng to
-                      </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
+                      <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        whileHover={{ scale: 1, opacity: 1 }}
+                        className="glass px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-white text-xs sm:text-sm font-semibold shadow-lg border border-white/30"
+                      >
+                        🔍 Click để phóng to
+                      </motion.div>
                     </div>
+
+                    {/* Live indicator */}
+                    {frame?.frame && (
+                      <div className="absolute top-3 right-3 z-20">
+                        <div className="flex items-center space-x-1.5 glass px-2.5 py-1.5 rounded-full border border-white/30">
+                          <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50" />
+                          <span className="text-xs font-semibold text-white">LIVE</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Info Panel (responsive) */}
-                  <div className="bg-white dark:bg-gray-900 p-2 sm:p-3">
-                    <h3 className="font-semibold text-sm sm:text-lg mb-2 sm:mb-3 flex items-center space-x-2">
-                      <span className="truncate">{roadName}</span>
+                  <div className="relative bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm p-3 sm:p-4 border-t border-white/20 dark:border-white/10">
+                    <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 flex items-center justify-between">
+                      <span className="truncate bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+                        {roadName}
+                      </span>
                     </h3>
+
                     {/* Status */}
-                    <div className="mb-2 sm:mb-3">
+                    <div className="mb-3 sm:mb-4">
                       <Badge
                         variant={getStatusBadgeVariant(color)}
-                        className="flex items-center space-x-1 sm:space-x-2 text-xs"
+                        className={`flex items-center space-x-1.5 sm:space-x-2 text-xs shadow-md ${
+                          color === "red"
+                            ? "bg-gradient-to-r from-red-500 to-orange-600"
+                            : color === "yellow"
+                            ? "bg-gradient-to-r from-yellow-500 to-amber-600"
+                            : "bg-gradient-to-r from-green-500 to-emerald-600"
+                        } text-white border-none`}
                       >
                         <Icon className="h-3 w-3 sm:h-4 sm:w-4" />
-                        <span className="text-xs">{text}</span>
+                        <span className="text-xs font-semibold">{text}</span>
                       </Badge>
                     </div>
 
                     {data ? (
-                      <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                      <div className="grid grid-cols-2 gap-3 sm:gap-4">
                         {/* Car Stats */}
-                        <div className="flex items-center space-x-1 sm:space-x-2">
-                          <div className="p-1 sm:p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                            <Car className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600 dark:text-blue-400" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                        <motion.div
+                          whileHover={{ scale: 1.05 }}
+                          className="flex flex-col p-2 sm:p-3 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 rounded-xl border border-blue-200/50 dark:border-blue-700/30 shadow-sm"
+                        >
+                          <div className="flex items-center space-x-2 mb-1.5">
+                            <div className="p-1.5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-md">
+                              <Car className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                            </div>
+                            <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
                               Ô tô
                             </p>
-                            <p className="font-semibold text-xs sm:text-base">{data.count_car}</p>
-                            <p className="text-xs text-gray-500">
-                              {data.speed_car.toFixed(1)} km/h
-                            </p>
                           </div>
-                        </div>
+                          <p className="font-bold text-lg sm:text-xl text-blue-600 dark:text-blue-400 mb-0.5">
+                            {data.count_car}
+                          </p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 flex items-center">
+                            <Gauge className="h-3 w-3 mr-1" />
+                            {data.speed_car.toFixed(1)} km/h
+                          </p>
+                        </motion.div>
 
                         {/* Motorbike Stats */}
-                        <div className="flex items-center space-x-1 sm:space-x-2">
-                          <div className="p-1 sm:p-2 bg-green-100 dark:bg-green-900 rounded-lg">
-                            <Bike className="h-3 w-3 sm:h-4 sm:w-4 text-green-600 dark:text-green-400" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                        <motion.div
+                          whileHover={{ scale: 1.05 }}
+                          className="flex flex-col p-2 sm:p-3 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 rounded-xl border border-green-200/50 dark:border-green-700/30 shadow-sm"
+                        >
+                          <div className="flex items-center space-x-2 mb-1.5">
+                            <div className="p-1.5 bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-md">
+                              <Bike className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                            </div>
+                            <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
                               Xe máy
                             </p>
-                            <p className="font-semibold text-xs sm:text-base">{data.count_motor}</p>
-                            <p className="text-xs text-gray-500">
-                              {data.speed_motor.toFixed(1)} km/h
-                            </p>
                           </div>
-                        </div>
+                          <p className="font-bold text-lg sm:text-xl text-green-600 dark:text-green-400 mb-0.5">
+                            {data.count_motor}
+                          </p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 flex items-center">
+                            <Gauge className="h-3 w-3 mr-1" />
+                            {data.speed_motor.toFixed(1)} km/h
+                          </p>
+                        </motion.div>
                       </div>
                     ) : (
-                      <div className="flex items-center justify-center py-2 sm:py-4">
+                      <div className="flex items-center justify-center py-4 sm:py-6">
                         <div className="text-center">
-                          <Gauge className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400 mx-auto mb-1 sm:mb-2" />
-                          <p className="text-xs sm:text-sm text-gray-500">
+                          <div className="relative inline-block mb-2">
+                            <Gauge className="h-8 w-8 sm:h-10 sm:w-10 text-gray-400 animate-pulse" />
+                            <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-xl animate-pulse" />
+                          </div>
+                          <p className="text-xs sm:text-sm text-gray-500 font-medium">
                             Đang tải dữ liệu...
                           </p>
                         </div>
