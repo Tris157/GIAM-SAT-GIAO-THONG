@@ -496,15 +496,29 @@ const ChatInterface = ({ trafficData }: ChatInterfaceProps) => {
   };
 
   return (
-    <Card className="h-[600px] sm:h-[500px] md:h-[600px] flex flex-col">
-      <CardHeader className="flex-shrink-0 px-3 sm:px-6">
+    <Card className="h-[600px] sm:h-[500px] md:h-[600px] flex flex-col glass border-white/20 dark:border-white/10 shadow-xl overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500" />
+      <CardHeader className="flex-shrink-0 px-3 sm:px-6 pb-3 border-b border-white/10">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center space-x-2 text-sm sm:text-base">
-            <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
-            <span className="truncate">Trợ Lý AI Giao Thông</span>
+          <CardTitle className="flex items-center space-x-2 text-sm sm:text-lg">
+            <div className="relative p-2 bg-gradient-to-br from-pink-500 via-purple-600 to-blue-500 rounded-lg shadow-md">
+              <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 text-white relative z-10" />
+              <div className="absolute inset-0 bg-gradient-to-br from-pink-400 to-purple-500 rounded-lg blur opacity-50 animate-pulse" />
+            </div>
+            <div className="flex flex-col">
+              <span className="truncate font-bold bg-gradient-to-r from-pink-600 via-purple-600 to-blue-600 dark:from-pink-400 dark:via-purple-400 dark:to-blue-400 bg-clip-text text-transparent">
+                Trợ Lý AI Giao Thông
+              </span>
+              {isWsConnected && (
+                <span className="text-xs text-green-600 dark:text-green-400 flex items-center space-x-1">
+                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                  <span>Đang hoạt động</span>
+                </span>
+              )}
+            </div>
           </CardTitle>
           <div className="flex items-center space-x-1 sm:space-x-2">
-            <Badge variant="outline" className="text-xs hidden sm:inline-flex">
+            <Badge variant="outline" className="text-xs hidden sm:inline-flex glass border-white/30 dark:border-white/20">
               {messages.length - 1} tin nhắn
             </Badge>
             <Button
@@ -512,7 +526,7 @@ const ChatInterface = ({ trafficData }: ChatInterfaceProps) => {
               size="sm"
               onClick={clearChat}
               disabled={messages.length <= 1}
-              className="h-8 w-8 sm:h-9 sm:w-auto sm:px-3"
+              className="h-8 w-8 sm:h-9 sm:w-auto sm:px-3 glass border-white/30 dark:border-white/20 hover:bg-red-500/20 hover:border-red-500/50 transition-all"
             >
               <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline ml-1">Xóa</span>
@@ -559,10 +573,10 @@ const ChatInterface = ({ trafficData }: ChatInterfaceProps) => {
                       </Avatar>
 
                       <div
-                        className={`rounded-lg p-2 sm:p-3 min-w-0 flex-1 ${
+                        className={`rounded-2xl p-3 sm:p-4 min-w-0 flex-1 shadow-md ${
                           message.user
-                            ? "bg-blue-500 text-white"
-                            : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                            ? "bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 text-white"
+                            : "glass border border-white/20 dark:border-white/10 text-gray-900 dark:text-gray-100"
                         }`}
                       >
                         {message.image && message.image.length > 0 && (
@@ -657,26 +671,28 @@ const ChatInterface = ({ trafficData }: ChatInterfaceProps) => {
         </div>
 
         {/* Input - Fixed at bottom */}
-        <div className="flex-shrink-0 flex space-x-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-          <Input
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Hỏi về tình trạng giao thông..."
-            disabled={isLoading}
-            className="flex-1 text-sm sm:text-base"
-          />
+        <div className="flex-shrink-0 flex space-x-2 pt-3 border-t border-white/10">
+          <div className="relative flex-1">
+            <Input
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Hỏi về tình trạng giao thông..."
+              disabled={isLoading}
+              className="flex-1 text-sm sm:text-base glass border-white/30 dark:border-white/20 focus:border-blue-500 dark:focus:border-blue-400 pr-4 rounded-xl shadow-sm"
+            />
+          </div>
           <Button
             onClick={handleSendMessage}
             disabled={!input.trim() || isLoading}
             size="icon"
-            className="h-9 w-9 sm:h-10 sm:w-10"
+            className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500 hover:from-blue-600 hover:via-purple-700 hover:to-pink-600 shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
-              <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+              <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin text-white" />
             ) : (
-              <Send className="h-3 w-3 sm:h-4 sm:w-4" />
+              <Send className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
             )}
           </Button>
         </div>

@@ -165,21 +165,29 @@ const TrafficAnalytics = ({
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
+          whileHover={{ y: -4 }}
         >
-          <Card>
+          <Card className="relative overflow-hidden glass border-white/20 dark:border-white/10 shadow-lg hover:shadow-xl transition-all duration-300">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-cyan-500" />
             <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <Activity className="h-8 w-8 text-blue-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    Tổng xe
-                  </p>
-                  <p className="text-2xl font-bold">{totalVehicles}</p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl shadow-lg">
+                    <Activity className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                      Tổng xe
+                    </p>
+                    <p className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 dark:from-blue-400 dark:to-cyan-400 bg-clip-text text-transparent">
+                      {totalVehicles}
+                    </p>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -190,18 +198,25 @@ const TrafficAnalytics = ({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
+          whileHover={{ y: -4 }}
         >
-          <Card>
+          <Card className="relative overflow-hidden glass border-white/20 dark:border-white/10 shadow-lg hover:shadow-xl transition-all duration-300">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-green-500 to-emerald-500" />
             <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <Car className="h-8 w-8 text-green-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    Tốc độ TB ô tô
-                  </p>
-                  <p className="text-2xl font-bold">
-                    {averageSpeed.car.toFixed(1)} km/h
-                  </p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg">
+                    <Car className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                      Tốc độ TB ô tô
+                    </p>
+                    <p className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
+                      {averageSpeed.car.toFixed(1)}
+                      <span className="text-base sm:text-lg ml-1">km/h</span>
+                    </p>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -212,18 +227,25 @@ const TrafficAnalytics = ({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
+          whileHover={{ y: -4 }}
         >
-          <Card>
+          <Card className="relative overflow-hidden glass border-white/20 dark:border-white/10 shadow-lg hover:shadow-xl transition-all duration-300">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500" />
             <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <Bike className="h-8 w-8 text-purple-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    Tốc độ TB xe máy
-                  </p>
-                  <p className="text-2xl font-bold">
-                    {averageSpeed.motor.toFixed(1)} km/h
-                  </p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl shadow-lg">
+                    <Bike className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                      Tốc độ TB xe máy
+                    </p>
+                    <p className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
+                      {averageSpeed.motor.toFixed(1)}
+                      <span className="text-base sm:text-lg ml-1">km/h</span>
+                    </p>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -234,21 +256,27 @@ const TrafficAnalytics = ({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
+          whileHover={{ y: -4 }}
         >
-          <Card>
+          <Card className="relative overflow-hidden glass border-white/20 dark:border-white/10 shadow-lg hover:shadow-xl transition-all duration-300">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-red-500" />
             <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <TrendingUp className="h-8 w-8 text-red-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    Đông nhất
-                  </p>
-                  <p className="text-lg font-bold">
-                    {busiestRoad.road || "N/A"}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {busiestRoad.vehicles} xe
-                  </p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="p-3 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl shadow-lg">
+                    <TrendingUp className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                      Đông nhất
+                    </p>
+                    <p className="text-base sm:text-lg font-bold bg-gradient-to-r from-orange-600 to-red-600 dark:from-orange-400 dark:to-red-400 bg-clip-text text-transparent">
+                      {busiestRoad.road || "N/A"}
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">
+                      {busiestRoad.vehicles} xe
+                    </p>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -258,156 +286,260 @@ const TrafficAnalytics = ({
 
       {/* Charts */}
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="overview" className="flex items-center space-x-2">
+        <TabsList className="grid w-full grid-cols-3 h-14 glass rounded-xl p-1.5 shadow-lg border border-white/20 dark:border-white/10">
+          <TabsTrigger
+            value="overview"
+            className="flex items-center space-x-2 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300"
+          >
             <BarChart3 className="h-4 w-4" />
-            <span>Tổng quan</span>
+            <span className="hidden sm:inline">Tổng quan</span>
           </TabsTrigger>
-          <TabsTrigger value="trends" className="flex items-center space-x-2">
+          <TabsTrigger
+            value="trends"
+            className="flex items-center space-x-2 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-600 data-[state=active]:text-white transition-all duration-300"
+          >
             <LineChartIcon className="h-4 w-4" />
-            <span>Xu hướng</span>
+            <span className="hidden sm:inline">Xu hướng</span>
           </TabsTrigger>
           <TabsTrigger
             value="distribution"
-            className="flex items-center space-x-2"
+            className="flex items-center space-x-2 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-600 data-[state=active]:text-white transition-all duration-300"
           >
             <PieChartIcon className="h-4 w-4" />
-            <span>Phân bố</span>
+            <span className="hidden sm:inline">Phân bố</span>
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Vehicle Count Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Số lượng xe theo tuyến đường</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={vehicleCountData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="road" />
-                    <YAxis />
-                    <Tooltip
-                      formatter={(value, name) => [
-                        value,
-                        name === "cars" ? "Ô tô" : "Xe máy",
-                      ]}
-                      labelFormatter={(label) => {
-                        const item = vehicleCountData.find(
-                          (d) => d.road === label
-                        );
-                        return item?.fullRoad || label;
-                      }}
-                    />
-                    <Bar dataKey="cars" fill="#3B82F6" name="cars" />
-                    <Bar dataKey="motors" fill="#10B981" name="motors" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <Card className="glass border-white/20 dark:border-white/10 shadow-lg overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-purple-500" />
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
+                      <BarChart3 className="h-4 w-4 text-white" />
+                    </div>
+                    <span>Số lượng xe theo tuyến đường</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={vehicleCountData}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
+                      <XAxis dataKey="road" className="text-xs" />
+                      <YAxis className="text-xs" />
+                      <Tooltip
+                        formatter={(value, name) => [
+                          value,
+                          name === "cars" ? "Ô tô" : "Xe máy",
+                        ]}
+                        labelFormatter={(label) => {
+                          const item = vehicleCountData.find(
+                            (d) => d.road === label
+                          );
+                          return item?.fullRoad || label;
+                        }}
+                        contentStyle={{
+                          backgroundColor: "rgba(255, 255, 255, 0.9)",
+                          border: "1px solid rgba(0, 0, 0, 0.1)",
+                          borderRadius: "8px",
+                        }}
+                      />
+                      <Bar dataKey="cars" fill="url(#colorCars)" name="cars" radius={[8, 8, 0, 0]} />
+                      <Bar dataKey="motors" fill="url(#colorMotors)" name="motors" radius={[8, 8, 0, 0]} />
+                      <defs>
+                        <linearGradient id="colorCars" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#3B82F6" stopOpacity={1} />
+                          <stop offset="100%" stopColor="#1E40AF" stopOpacity={0.8} />
+                        </linearGradient>
+                        <linearGradient id="colorMotors" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#10B981" stopOpacity={1} />
+                          <stop offset="100%" stopColor="#047857" stopOpacity={0.8} />
+                        </linearGradient>
+                      </defs>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </motion.div>
 
             {/* Speed Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Tốc độ trung bình (km/h)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={speedData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="road" />
-                    <YAxis />
-                    <Tooltip
-                      formatter={(value, name) => [
-                        `${Number(value).toFixed(1)} km/h`,
-                        name === "carSpeed" ? "Ô tô" : "Xe máy",
-                      ]}
-                      labelFormatter={(label) => {
-                        const item = speedData.find((d) => d.road === label);
-                        return item?.fullRoad || label;
-                      }}
-                    />
-                    <Bar dataKey="carSpeed" fill="#F59E0B" name="carSpeed" />
-                    <Bar
-                      dataKey="motorSpeed"
-                      fill="#8B5CF6"
-                      name="motorSpeed"
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.6 }}
+            >
+              <Card className="glass border-white/20 dark:border-white/10 shadow-lg overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-yellow-500" />
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <div className="p-2 bg-gradient-to-br from-orange-500 to-yellow-600 rounded-lg">
+                      <LineChartIcon className="h-4 w-4 text-white" />
+                    </div>
+                    <span>Tốc độ trung bình (km/h)</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={speedData}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
+                      <XAxis dataKey="road" className="text-xs" />
+                      <YAxis className="text-xs" />
+                      <Tooltip
+                        formatter={(value, name) => [
+                          `${Number(value).toFixed(1)} km/h`,
+                          name === "carSpeed" ? "Ô tô" : "Xe máy",
+                        ]}
+                        labelFormatter={(label) => {
+                          const item = speedData.find((d) => d.road === label);
+                          return item?.fullRoad || label;
+                        }}
+                        contentStyle={{
+                          backgroundColor: "rgba(255, 255, 255, 0.9)",
+                          border: "1px solid rgba(0, 0, 0, 0.1)",
+                          borderRadius: "8px",
+                        }}
+                      />
+                      <Bar dataKey="carSpeed" fill="url(#colorCarSpeed)" name="carSpeed" radius={[8, 8, 0, 0]} />
+                      <Bar dataKey="motorSpeed" fill="url(#colorMotorSpeed)" name="motorSpeed" radius={[8, 8, 0, 0]} />
+                      <defs>
+                        <linearGradient id="colorCarSpeed" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#F59E0B" stopOpacity={1} />
+                          <stop offset="100%" stopColor="#D97706" stopOpacity={0.8} />
+                        </linearGradient>
+                        <linearGradient id="colorMotorSpeed" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#8B5CF6" stopOpacity={1} />
+                          <stop offset="100%" stopColor="#7C3AED" stopOpacity={0.8} />
+                        </linearGradient>
+                      </defs>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
         </TabsContent>
 
         <TabsContent value="trends">
-          <Card>
-            <CardHeader>
-              <CardTitle>Xu hướng giao thông theo thời gian</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={historicalData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="time" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  {allowedRoads.map((road, index) => (
-                    <Line
-                      key={road}
-                      type="monotone"
-                      dataKey={`${road}_total`}
-                      stroke={COLORS[index % COLORS.length]}
-                      name={road}
-                      strokeWidth={2}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <Card className="glass border-white/20 dark:border-white/10 shadow-lg overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500" />
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg">
+                    <LineChartIcon className="h-4 w-4 text-white" />
+                  </div>
+                  <span>Xu hướng giao thông theo thời gian</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <ResponsiveContainer width="100%" height={400}>
+                  <LineChart data={historicalData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
+                    <XAxis dataKey="time" className="text-xs" />
+                    <YAxis className="text-xs" />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "rgba(255, 255, 255, 0.9)",
+                        border: "1px solid rgba(0, 0, 0, 0.1)",
+                        borderRadius: "8px",
+                      }}
                     />
-                  ))}
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+                    <Legend />
+                    {allowedRoads.map((road, index) => (
+                      <Line
+                        key={road}
+                        type="monotone"
+                        dataKey={`${road}_total`}
+                        stroke={COLORS[index % COLORS.length]}
+                        name={road}
+                        strokeWidth={3}
+                        dot={{ r: 4 }}
+                        activeDot={{ r: 6 }}
+                      />
+                    ))}
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </motion.div>
         </TabsContent>
 
         <TabsContent value="distribution">
-          <Card>
-            <CardHeader>
-              <CardTitle>Phân bố xe theo tuyến đường</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) =>
-                      `${name} (${(percent * 100).toFixed(0)}%)`
-                    }
-                    outerRadius={120}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {pieData.map((_, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value, _, props) => [
-                      `${value} xe (${props.payload.cars} ô tô, ${props.payload.motors} xe máy)`,
-                      "Tổng số xe",
-                    ]}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <Card className="glass border-white/20 dark:border-white/10 shadow-lg overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-pink-500 to-orange-500" />
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <div className="p-2 bg-gradient-to-br from-pink-500 to-orange-600 rounded-lg">
+                    <PieChartIcon className="h-4 w-4 text-white" />
+                  </div>
+                  <span>Phân bố xe theo tuyến đường</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <ResponsiveContainer width="100%" height={400}>
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={{
+                        stroke: "rgba(99, 102, 241, 0.5)",
+                        strokeWidth: 2,
+                      }}
+                      label={({ name, percent }) =>
+                        `${name} (${(percent * 100).toFixed(0)}%)`
+                      }
+                      outerRadius={140}
+                      fill="#8884d8"
+                      dataKey="value"
+                      paddingAngle={2}
+                    >
+                      {pieData.map((_, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                          className="hover:opacity-80 transition-opacity cursor-pointer"
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value, _, props) => [
+                        `${value} xe (${props.payload.cars} ô tô, ${props.payload.motors} xe máy)`,
+                        "Tổng số xe",
+                      ]}
+                      contentStyle={{
+                        backgroundColor: "rgba(255, 255, 255, 0.95)",
+                        border: "1px solid rgba(0, 0, 0, 0.1)",
+                        borderRadius: "8px",
+                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                      }}
+                    />
+                    <Legend
+                      verticalAlign="bottom"
+                      height={36}
+                      iconType="circle"
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </motion.div>
         </TabsContent>
       </Tabs>
     </div>
