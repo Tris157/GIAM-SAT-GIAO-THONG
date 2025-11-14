@@ -35,7 +35,7 @@ class SettingMetricTransport:
                         0.11,
                         0.06
                         ]
-    MODELS_PATH = r'./app/ai_models/model N/original model/obstacle.pt'
+    MODELS_PATH = r'./app/ai_models/model N/original model/best.pt'
 
     DEVICE = 'cuda:0'  # Auto GPU detection in services
 

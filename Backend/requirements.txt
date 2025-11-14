@@ -1,0 +1,25 @@
+# FastAPI Core
+fastapi==0.115.0
+uvicorn[standard]==0.32.0
+pydantic==2.9.0
+pydantic-settings==2.5.0
+
+# Database
+sqlalchemy==2.0.35
+aiosqlite==0.20.0
+
+# Authentication
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.12
+
+# CORS
+python-dotenv==1.0.1
+
+# AI/ML (Lightweight - không cần YOLO cho deploy)
+# ultralytics==8.0.0  # Bỏ qua vì quá nặng
+# opencv-python==4.10.0  # Bỏ qua
+# numpy==1.26.0
+
+# Utils
+requests==2.32.0

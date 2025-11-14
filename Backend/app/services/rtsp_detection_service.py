@@ -11,7 +11,7 @@ from app.services.red_light_detector import RedLightDetector
 class RTSPDetectionService:
     """Service to handle RTSP camera streaming with YOLO detection"""
 
-    def __init__(self, rtsp_url: str, camera_name: str = "camera_live", model_path: str = "./app/ai_models/model N/original model/obstacle.pt"):
+    def __init__(self, rtsp_url: str, camera_name: str = "camera_live", model_path: str = "./app/ai_models/model N/original model/best.pt"):
         self.rtsp_url = rtsp_url
         self.camera_name = camera_name
         self.model_path = model_path
@@ -289,7 +289,7 @@ class RTSPDetectionManager:
     def __init__(self):
         self.streams: Dict[str, RTSPDetectionService] = {}
 
-    def add_stream(self, name: str, rtsp_url: str, model_path: str = "./app/ai_models/model N/original model/obstacle.pt") -> bool:
+    def add_stream(self, name: str, rtsp_url: str, model_path: str = "./app/ai_models/model N/original model/best.pt") -> bool:
         """Add a new RTSP stream with detection"""
         if name in self.streams:
             print(f"⚠️ Stream {name} already exists")
