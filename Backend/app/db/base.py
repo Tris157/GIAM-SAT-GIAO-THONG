@@ -78,6 +78,16 @@ engine = create_async_engine(settings.DATABASE_URL, future=True, echo=True)
 
 # Dòng 6: Tạo sessionmaker
 AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+# Factory function để tạo session (dùng cho background tasks)
+def get_db_session_factory():
+    """
+    Trả về sessionmaker để tạo db session trong background tasks
+
+    Returns:
+        Async context manager để tạo AsyncSession
+    """
+    return AsyncSessionLocal
 # sessionmaker(): Factory để tạo session instances
 #
 # THAM SỐ:

@@ -621,16 +621,16 @@ async def quick_setup_camera_live():
     config = RedLightConfig(
         camera_name="camera_live",  # Tên camera
 
-        # ROI cho đèn tín hiệu (góc trên trái)
+        # ROI cho đèn tín hiệu (BÊN PHẢI màn hình - ĐÃ SỬA)
         traffic_light_roi={
-            "x": 5,      # 5 pixels từ mép trái
-            "y": 5,      # 5 pixels từ mép trên
-            "w": 100,    # Chiều rộng 100px
-            "h": 180     # Chiều cao 180px (3 đèn xếp dọc)
+            "x": 1570,   # 1570 pixels từ mép trái (bên phải màn hình)
+            "y": 154,    # 154 pixels từ mép trên
+            "w": 43,     # Chiều rộng 43px (chỉ vừa đủ bóng đèn)
+            "h": 73      # Chiều cao 73px (không lấy cả cột)
         },
 
         # Vạch dừng (trước vạch zebra)
-        stop_line_y=420,  # Y=420 pixels
+        stop_line_y=544,  # Y=420 pixels
         # Xe có position_y > 420 khi đèn đỏ → vi phạm
 
         enable=True  # Bật detection luôn
@@ -640,6 +640,215 @@ async def quick_setup_camera_live():
     # Dòng 249: Reuse configure endpoint
     return await configure_red_light_detection(config)
     # Gọi lại hàm configure ở trên với config đã tối ưu
+
+
+# ============================================================================
+# ENDPOINT: GỬI BÁO CÁO TỔNG KẾT HỆ THỐNG QUA TELEGRAM
+# ============================================================================
+
+@router.post("/violations/send-report")
+async def send_system_report_telegram(
+    period: str = "today",  # today, week, month
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Gửi báo cáo tổng kết tình hình hệ thống qua Telegram
+
+    Args:
+        period: Khoảng thời gian báo cáo (today/week/month)
+        db: Database session
+
+    Returns:
+        - success: True nếu gửi thành công
+        - message: Thông báo kết quả
+    """
+    from app.services.telegram_notifier import get_telegram_notifier
+    from sqlalchemy import func, extract
+    from datetime import datetime, timedelta
+    import time
+
+    try:
+        telegram_notifier = get_telegram_notifier()
+
+        # Kiểm tra bot có được enable không
+        if not telegram_notifier.enabled:
+            return {
+                "success": False,
+                "message": "❌ Telegram Bot chưa được cấu hình"
+            }
+
+        # Xác định khoảng thời gian
+        now = datetime.now()
+        if period == "today":
+            start_date = datetime(now.year, now.month, now.day)
+            period_name = "Hôm nay"
+        elif period == "week":
+            start_date = now - timedelta(days=7)
+            period_name = "7 ngày qua"
+        elif period == "month":
+            start_date = now - timedelta(days=30)
+            period_name = "30 ngày qua"
+        else:
+            start_date = datetime(now.year, now.month, now.day)
+            period_name = "Hôm nay"
+
+        # Query thống kê vi phạm
+        violations_query = select(TrafficViolation).where(
+            TrafficViolation.violated_at >= start_date
+        )
+        violations_result = await db.execute(violations_query)
+        violations = violations_result.scalars().all()
+
+        # Tổng số vi phạm
+        total_violations = len(violations)
+
+        # Đếm theo loại xe
+        violations_by_type = {}
+        for v in violations:
+            vehicle_type = v.vehicle_type or "unknown"
+            violations_by_type[vehicle_type] = violations_by_type.get(vehicle_type, 0) + 1
+
+        # Đếm processed/unprocessed
+        processed_count = sum(1 for v in violations if v.is_processed)
+        unprocessed_count = total_violations - processed_count
+
+        # Tính giờ cao điểm (top 3)
+        hours_count = {}
+        for v in violations:
+            hour = v.violated_at.hour
+            hours_count[hour] = hours_count.get(hour, 0) + 1
+
+        top_hours = [
+            {"hour": hour, "count": count}
+            for hour, count in sorted(hours_count.items(), key=lambda x: x[1], reverse=True)[:3]
+        ]
+
+        # Trạng thái camera (lấy từ rtsp_detection_manager)
+        camera_status = {}
+        for stream_name, stream in rtsp_detection_manager.streams.items():
+            camera_status[stream_name] = "online" if stream.is_running else "offline"
+
+        if not camera_status:
+            camera_status = {"camera_live": "unknown"}
+
+        # Thống kê lưu lượng giao thông (mock data - có thể tích hợp thật sau)
+        traffic_stats = {
+            "cars": violations_by_type.get("car", 0) * 10,  # Estimate
+            "motors": violations_by_type.get("motor", 0) * 10,
+            "trucks": 0,
+            "buses": 0
+        }
+
+        # System uptime (tính từ khi start app)
+        # TODO: Track start time thực tế
+        uptime = "N/A"
+
+        # Tạo report data
+        report_data = {
+            "period": period_name,
+            "total_violations": total_violations,
+            "violations_by_type": violations_by_type,
+            "processed_count": processed_count,
+            "unprocessed_count": unprocessed_count,
+            "top_violation_hours": top_hours,
+            "camera_status": camera_status,
+            "traffic_stats": traffic_stats,
+            "system_uptime": uptime
+        }
+
+        # Gửi báo cáo qua Telegram
+        success = await telegram_notifier.send_system_report(report_data)
+
+        if success:
+            return {
+                "success": True,
+                "message": f"✅ Đã gửi báo cáo {period_name} qua Telegram thành công!"
+            }
+        else:
+            return {
+                "success": False,
+                "message": "❌ Gửi báo cáo thất bại"
+            }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"❌ Lỗi: {str(e)}"
+        }
+
+
+# ============================================================================
+# ENDPOINT: TELEGRAM WEBHOOK - NHẬN TIN NHẮN TỪ TELEGRAM
+# ============================================================================
+
+@router.post("/telegram/webhook")
+async def telegram_webhook(request: dict, db: AsyncSession = Depends(get_db)):
+    """
+    Webhook endpoint để nhận tin nhắn từ Telegram Bot
+
+    Telegram sẽ gửi POST request đến endpoint này khi có tin nhắn mới
+    """
+    from app.services.telegram_bot_handler import get_bot_handler
+
+    try:
+        bot_handler = get_bot_handler()
+        response = await bot_handler.handle_message(request, db)
+
+        return {"ok": True, "response": response}
+
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+
+# ============================================================================
+# ENDPOINT: TEST TELEGRAM BOT
+# ============================================================================
+
+@router.post("/violations/test-telegram")
+async def test_telegram_notification():
+    """
+    Test gửi thông báo Telegram Bot
+
+    Gửi 1 tin nhắn test để kiểm tra:
+    - Bot token có đúng không
+    - Chat ID có đúng không
+    - Kết nối internet có OK không
+
+    Returns:
+        - success: True nếu gửi thành công
+        - message: Thông báo kết quả
+    """
+    from app.services.telegram_notifier import get_telegram_notifier
+
+    try:
+        telegram_notifier = get_telegram_notifier()
+
+        # Kiểm tra xem bot có được enable không
+        if not telegram_notifier.enabled:
+            return {
+                "success": False,
+                "message": "❌ Telegram Bot chưa được cấu hình. Vui lòng cập nhật TELEGRAM_BOT_TOKEN và TELEGRAM_CHAT_ID trong file .env"
+            }
+
+        # Gửi test message
+        success = await telegram_notifier.send_test_message()
+
+        if success:
+            return {
+                "success": True,
+                "message": "✅ Gửi test message thành công! Kiểm tra Telegram để xem tin nhắn."
+            }
+        else:
+            return {
+                "success": False,
+                "message": "❌ Gửi test message thất bại. Kiểm tra lại Bot Token và Chat ID."
+            }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"❌ Lỗi: {str(e)}"
+        }
 
 
 # ============================================================================

@@ -45,6 +45,14 @@ from datetime import datetime
 import os
 # Để tạo thư mục lưu ảnh vi phạm
 
+# Dòng 10: Import asyncio
+import asyncio
+# Để chạy async function gửi Telegram
+
+# Dòng 11: Import TelegramNotifier
+from app.services.telegram_notifier import get_telegram_notifier
+# Service gửi cảnh báo qua Telegram Bot
+
 
 # ============================================================================
 # PHẦN 2: CLASS REDLIGHTDETECTOR - DETECTOR CHÍNH
@@ -146,6 +154,11 @@ class RedLightDetector:
         os.makedirs(self.violation_images_dir, exist_ok=True)
         # Tạo thư mục nếu chưa tồn tại
         # exist_ok=True: Không báo lỗi nếu folder đã tồn tại
+
+        # --- TELEGRAM BOT NOTIFIER ---
+        # Khởi tạo Telegram notifier để gửi cảnh báo real-time
+        self.telegram_notifier = get_telegram_notifier()
+        # Singleton instance, tự động load config từ .env
 
     # ========================================================================
     # PHẦN 2.2: CONFIG METHODS - CẤU HÌNH ROI VÀ STOP LINE
@@ -585,17 +598,41 @@ class RedLightDetector:
                 # Dòng 225: Thêm image_path vào violation
                 violation['image_path'] = image_path
 
-                # --- BƯỚC 11: UPDATE STATISTICS ---
+                # --- BƯỚC 11: GỬI TELEGRAM NOTIFICATION ---
+                # Gửi cảnh báo qua Telegram Bot (async, không block)
+                try:
+                    # Tạo violation data cho Telegram
+                    telegram_data = {
+                        'timestamp': current_time,
+                        'vehicle_type': vehicle_type,
+                        'license_plate': 'Không nhận diện được',  # TODO: Tích hợp OCR
+                        'camera_name': self.camera_name,
+                        'location': 'Hà Nội'  # TODO: Lấy từ config
+                    }
+
+                    # Gửi async (trong < 1 giây)
+                    asyncio.create_task(
+                        self.telegram_notifier.send_violation_alert(
+                            annotated_frame,  # Ảnh đã vẽ annotations
+                            telegram_data
+                        )
+                    )
+                    print(f"📱 Telegram notification queued for {vehicle_type}")
+                except Exception as e:
+                    print(f"⚠️ Telegram notification failed: {e}")
+                    # Không throw error, tiếp tục xử lý vi phạm bình thường
+
+                # --- BƯỚC 12: UPDATE STATISTICS ---
                 # Dòng 227-228: Thêm vào list và tăng counter
                 violations.append(violation)
                 self.violation_count += 1
 
-                # --- BƯỚC 12: ADD COOLDOWN ---
+                # --- BƯỚC 13: ADD COOLDOWN ---
                 # Dòng 230-231: Lưu cooldown
                 self.violation_cooldown[position_key] = current_time
                 # Vị trí này không detect lại trong 5 giây
 
-                # --- BƯỚC 13: LOG ---
+                # --- BƯỚC 14: LOG ---
                 # Dòng 233: In ra console
                 print(f"🚨 VIOLATION DETECTED: {vehicle_type} ran red light at Y={bottom_y:.0f}")
                 # 🚨: Emoji cảnh báo để dễ nhận biết trong logs

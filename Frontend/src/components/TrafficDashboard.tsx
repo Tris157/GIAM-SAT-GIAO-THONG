@@ -29,6 +29,7 @@ import TrafficAnalytics from "./TrafficAnalytics";
 import TrafficReports from "./TrafficReports";
 import RTSPLiveStream from "./RTSPLiveStream";
 import WeatherWidget from "./WeatherWidget";
+import ViolationsManagement from "./ViolationsManagement";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMultipleTrafficInfo, useMultipleFrameStreams } from "../hooks/useWebSocket";
 import { endpoints } from "../config";
@@ -204,7 +205,7 @@ const TrafficDashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <TabsList className="glass grid w-full grid-cols-4 h-14 p-1 border border-white/10 shadow-xl">
+          <TabsList className="glass grid w-full grid-cols-5 h-14 p-1 border border-white/10 shadow-xl">
             <TabsTrigger
               value="monitor"
               className="text-base py-3 px-6 font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-500 data-[state=active]:text-white transition-all duration-300 rounded-lg"
@@ -239,6 +240,18 @@ const TrafficDashboard = () => {
               >
                 <Settings className="h-5 w-5" />
                 <span>Phân Tích</span>
+              </motion.div>
+            </TabsTrigger>
+            <TabsTrigger
+              value="violations"
+              className="text-base py-3 px-6 font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-orange-500 data-[state=active]:text-white transition-all duration-300 rounded-lg"
+            >
+              <motion.div
+                className="flex items-center space-x-2"
+                whileHover={{ scale: 1.05 }}
+              >
+                <AlertTriangle className="h-5 w-5" />
+                <span>Vi Phạm</span>
               </motion.div>
             </TabsTrigger>
             <TabsTrigger
@@ -374,6 +387,10 @@ const TrafficDashboard = () => {
             trafficData={trafficData}
             allowedRoads={allowedRoads}
           />
+        </TabsContent>
+
+        <TabsContent value="violations">
+          <ViolationsManagement />
         </TabsContent>
 
         <TabsContent value="chat">

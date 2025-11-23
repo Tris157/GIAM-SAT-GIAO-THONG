@@ -125,6 +125,18 @@ async def startup_event():
     else:
         print("❌ Failed to connect to RTSP camera with detection")
 
+    # --- BƯỚC 5: KHỞI ĐỘNG TELEGRAM BOT POLLING ---
+    # Polling tin nhắn từ Telegram để bot có thể nhận và trả lời lệnh
+    from app.services.telegram_polling import get_polling_service
+    from app.db.base import get_db_session_factory
+
+    polling_service = get_polling_service()
+    db_factory = get_db_session_factory()
+
+    # Chạy polling trong background task
+    asyncio.create_task(polling_service.start_polling(db_factory))
+    print("✅ Telegram Bot polling started")
+
 # ============================================================================
 # PHẦN 5: XỬ LÝ TÍN HIỆU (CTRL+C)
 # ============================================================================
