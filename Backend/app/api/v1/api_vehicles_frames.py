@@ -2,17 +2,17 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from app.api.v1 import state
 import asyncio
-from app.services.road_services.AnalyzeOnRoadForMultiProcessing import AnalyzeOnRoadForMultiprocessing
 from fastapi.responses import Response
 from fastapi import WebSocket, WebSocketDisconnect
 
 router = APIRouter()
 
-@router.on_event("startup")
-def start_up():
-    if state.analyzer is None:
-        state.analyzer = AnalyzeOnRoadForMultiprocessing()
-        state.analyzer.run_multiprocessing()
+# COMMENT OUT: Startup event đã được di chuyển vào main.py
+# @router.on_event("startup")
+# def start_up():
+#     if state.analyzer is None:
+#         state.analyzer = AnalyzeOnRoadForMultiprocessing()
+#         state.analyzer.run_multiprocessing()
 
 @router.get(path= '/roads_name')
 async def get_road_names():

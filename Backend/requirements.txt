@@ -16,10 +16,24 @@ python-multipart==0.0.12
 # CORS
 python-dotenv==1.0.1
 
-# AI/ML (Lightweight - không cần YOLO cho deploy)
-# ultralytics==8.0.0  # Bỏ qua vì quá nặng
-# opencv-python==4.10.0  # Bỏ qua
-# numpy==1.26.0
+# AI/ML - CẦN THIẾT CHO DETECTION
+ultralytics>=8.0.0
+opencv-python>=4.8.0
+numpy>=1.24.0
+scipy>=1.10.0
 
 # Utils
 requests==2.32.0
+
+# Report Export - PDF & Excel
+reportlab==4.0.7
+openpyxl==3.1.2
+matplotlib==3.8.2
+Pillow==10.1.0
+
+# Telegram Bot
+python-telegram-bot>=20.0
+httpx>=0.24.0
+
+# Google AI (for chatbot)
+google-generativeai>=0.3.0

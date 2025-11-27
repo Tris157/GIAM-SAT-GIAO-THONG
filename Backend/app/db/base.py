@@ -581,3 +581,47 @@ async def delete(id: int, db: AsyncSession = Depends(get_db)):
 
 END OF DOCUMENTATION
 """
+
+
+# ============================================================================
+# PHẦN 6: SYNC DATABASE SESSION FOR REPORTS
+# ============================================================================
+
+def get_db_sync():
+    """
+    Sync database session cho reports (PDF/Excel export)
+
+    NGUYÊN NHÂN CẦN SYNC SESSION:
+    - Report export service sử dụng .query() (sync method)
+    - Async session không support .query()
+    - MissingGreenlet error nếu dùng .query() trong async context
+
+    CÁCH DÙNG:
+    @router.post("/reports/export/pdf")
+    async def export_pdf(db: Session = Depends(get_db_sync)):
+        # Có thể dùng db.query() ở đây
+        data = db.query(TrafficRecord).all()
+
+    Returns:
+        Session: Sync database session
+    """
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker, Session
+    from app.core.config import settings
+
+    # Convert async URL to sync URL
+    # sqlite+aiosqlite:///./app/traffic_monitor.db -> sqlite:///./app/traffic_monitor.db
+    sync_url = settings.DATABASE_URL.replace("sqlite+aiosqlite:", "sqlite:")
+
+    # Create sync engine
+    sync_engine = create_engine(sync_url, echo=False, connect_args={"check_same_thread": False})
+
+    # Create session factory
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=sync_engine)
+
+    # Create and yield session
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

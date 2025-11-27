@@ -14,6 +14,12 @@ import sys  # Module để tương tác với Python interpreter (exit, argv, v.
 import signal  # Module để xử lý tín hiệu hệ thống (Ctrl+C, kill, v.v.)
 import asyncio  # Module để lập trình bất đồng bộ (async/await)
 
+# Fix UTF-8 encoding cho Windows console
+if sys.platform == 'win32':
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
 # Import các router API từ thư mục api/v1
 from app.api.v1 import api_vehicles_frames  # Router xử lý xe cộ và frames video
 from app.api.v1 import api_chatbot  # Router xử lý chatbot AI
@@ -33,6 +39,7 @@ from app.db.database import create_tables  # Hàm tạo bảng database (cũ, đ
 from app.services.traffic_data_scheduler import init_scheduler, get_scheduler  # Scheduler tự động lưu data
 from app.models.traffic_violation import TrafficViolation  # Model vi phạm - import để SQLAlchemy biết
 from app.db.base import Base, engine as async_engine  # Base class và engine cho async database
+from sqlalchemy import create_engine  # Import sync engine để tạo tables
 
 # ============================================================================
 # PHẦN 2: CẤU HÌNH BIẾN MÔI TRƯỜNG
@@ -78,64 +85,134 @@ app.add_middleware(
 # PHẦN 4: SỰ KIỆN KHỞI ĐỘNG SERVER (STARTUP)
 # ============================================================================
 
-# Dòng 46: Decorator để đăng ký hàm chạy KHI SERVER BẮT ĐẦU
+# Decorator để đăng ký hàm chạy KHI SERVER BẮT ĐẦU
 @app.on_event("startup")
 async def startup_event():
     """
     Hàm này chạy MỘT LẦN duy nhất khi server khởi động
-    Nhiệm vụ: Setup database, scheduler, RTSP camera
+    Nhiệm vụ: Setup database, analyzer, scheduler, Telegram bot
     """
+    import traceback
+
+    print("🚀 Bắt đầu startup event...")
 
     # --- BƯỚC 1: TẠO BẢNG DATABASE ---
-    # Dòng 50-51: Tạo tất cả bảng trong database nếu chưa tồn tại
-    async with async_engine.begin() as conn:  # Mở connection async
-        # run_sync(): Chạy hàm sync trong context async
-        # Base.metadata.create_all: Tạo tất cả bảng từ models (User, TrafficViolation, v.v.)
-        await conn.run_sync(Base.metadata.create_all)
-    print("✅ Async database tables created")  # In ra console để biết đã tạo xong
+    try:
+        print("⏳ Đang tạo database tables...")
+        # Dùng sync engine để tạo tables (tránh async deadlock)
+        # Đổi sqlite+aiosqlite thành sqlite
+        from app.core.config import settings
+        sync_db_url = settings.DATABASE_URL.replace("sqlite+aiosqlite", "sqlite")
+        sync_engine = create_engine(sync_db_url, echo=False)
+        Base.metadata.create_all(sync_engine)
+        sync_engine.dispose()  # Đóng connection ngay lập tức
+        print("✅ Database tables created successfully")
+    except Exception as e:
+        print(f"❌ Database creation failed: {e}")
+        traceback.print_exc()
+        raise
 
-    # --- BƯỚC 2: CHỜ ANALYZER KHỞI TẠO ---
-    # Dòng 55: Đợi 5 giây để analyzer (YOLO, OpenVINO) khởi tạo xong
-    # Lý do: Load model YOLO mất vài giây, nên đợi trước khi start scheduler
-    await asyncio.sleep(5)
+    # --- BƯỚC 2: KHỞI TẠO ANALYZER (BACKGROUND THREAD - KHÔNG BLOCK) ---
+    try:
+        print("⏳ Analyzer sẽ được khởi tạo trong background thread...")
 
-    # --- BƯỚC 3: KHỞI ĐỘNG SCHEDULER (TỰ ĐỘNG LƯU DATA) ---
-    # Dòng 57-61: Nếu analyzer đã sẵn sàng, start scheduler
-    if state.analyzer:  # Kiểm tra analyzer đã được khởi tạo chưa
-        # init_scheduler(): Tạo scheduler lưu data mỗi 10 giây
-        scheduler = init_scheduler(state.analyzer, interval_seconds=10)
-        await scheduler.start()  # Bắt đầu chạy scheduler
-        print("✅ Traffic data auto-save scheduler started (interval: 10s)")
+        # Sử dụng Thread thay vì asyncio để KHÔNG BLOCK startup event
+        import threading
 
-    # --- BƯỚC 4: KẾT NỐI RTSP CAMERA ---
-    # Dòng 64-72: Kết nối đến camera RTSP và bật detection
-    from app.api.v1.api_rtsp import rtsp_detection_manager, read_rtsp_detection_frames
+        def init_analyzer_thread():
+            try:
+                import time
+                time.sleep(2)  # Đợi server sẵn sàng
+                print("🔄 Background Thread: Bắt đầu init analyzer...")
+                state.init_analyzer()
+                print("✅ Background Thread: Analyzer đã khởi tạo xong!")
+            except Exception as e:
+                print(f"❌ Background Thread: Analyzer init failed: {e}")
+                traceback.print_exc()
 
-    # URL RTSP của camera IP (username:password@ip:port/path)
-    rtsp_url = "rtsp://iocqnm:Quangnam$ioc2020@113.174.246.181:554/h264/ch1/main/av_stream"
+        # Tạo daemon thread - chạy độc lập, KHÔNG block main thread
+        analyzer_thread = threading.Thread(target=init_analyzer_thread, daemon=True)
+        analyzer_thread.start()
+        print("✅ Analyzer background thread started (không đợi init xong)")
+    except Exception as e:
+        print(f"❌ Failed to create analyzer thread: {e}")
+        traceback.print_exc()
 
-    # Dòng 67: Thêm stream vào manager với tên "camera_live"
-    success = rtsp_detection_manager.add_stream("camera_live", rtsp_url)
+    # --- BƯỚC 3: SCHEDULER (AUTO-SAVE DATA) ---
+    try:
+        async def start_scheduler_when_ready():
+            try:
+                print("🔄 Background: Đang chờ analyzer khởi tạo...")
+                # Đợi analyzer khởi tạo xong
+                while state.analyzer is None:
+                    await asyncio.sleep(1)
 
-    if success:  # Nếu kết nối thành công
-        print("✅ RTSP camera with detection connected successfully")
-        # Dòng 70: Tạo task async để đọc frames liên tục từ camera
-        # asyncio.create_task(): Chạy coroutine trong background
-        asyncio.create_task(read_rtsp_detection_frames("camera_live"))
-    else:
-        print("❌ Failed to connect to RTSP camera with detection")
+                print("🔄 Background: Bắt đầu khởi động scheduler...")
+                # Khởi động scheduler
+                scheduler = init_scheduler(state.analyzer, interval_seconds=10)
+                await scheduler.start()
+                print("✅ Traffic data auto-save scheduler started (interval: 10s)")
+            except Exception as e:
+                print(f"❌ Background: Scheduler failed: {e}")
+                traceback.print_exc()
 
-    # --- BƯỚC 5: KHỞI ĐỘNG TELEGRAM BOT POLLING ---
-    # Polling tin nhắn từ Telegram để bot có thể nhận và trả lời lệnh
-    from app.services.telegram_polling import get_polling_service
-    from app.db.base import get_db_session_factory
+        asyncio.create_task(start_scheduler_when_ready())
+        print("✅ Scheduler background task created")
+    except Exception as e:
+        print(f"❌ Failed to create scheduler task: {e}")
+        traceback.print_exc()
 
-    polling_service = get_polling_service()
-    db_factory = get_db_session_factory()
+    # --- BƯỚC 4: KẾT NỐI RTSP CAMERA (TẠM TẮT) ---
+    # Camera RTSP có thể không còn hoạt động, tạm comment để tránh block
+    # from app.api.v1.api_rtsp import rtsp_detection_manager, read_rtsp_detection_frames
+    # rtsp_url = "rtsp://iocqnm:Quangnam$ioc2020@113.174.246.181:554/h264/ch1/main/av_stream"
+    # success = rtsp_detection_manager.add_stream("camera_live", rtsp_url)
+    # if success:
+    #     print("✅ RTSP camera connected")
+    #     asyncio.create_task(read_rtsp_detection_frames("camera_live"))
+    print("ℹ️ RTSP camera: Tạm tắt (có thể bật lại sau)")
 
-    # Chạy polling trong background task
-    asyncio.create_task(polling_service.start_polling(db_factory))
-    print("✅ Telegram Bot polling started")
+    # --- BƯỚC 5: KHỞI ĐỘNG TELEGRAM BOT (BACKGROUND THREAD) ---
+    try:
+        print("🔄 Telegram Bot sẽ được khởi tạo trong background...")
+
+        # Sử dụng Thread để không block startup event
+        def init_telegram_bot_thread():
+            try:
+                import time
+                time.sleep(5)  # Đợi server sẵn sàng
+                print("🔄 Background Thread: Bắt đầu init Telegram Bot...")
+
+                # Import và khởi động bot
+                from app.services.telegram_polling import get_polling_service
+                from app.db.base import get_db_session_factory
+                import asyncio
+
+                polling_service = get_polling_service()
+                db_factory = get_db_session_factory()
+
+                # Tạo event loop mới cho thread này
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                loop.run_until_complete(polling_service.start_polling(db_factory))
+
+                print("✅ Background Thread: Telegram Bot đã khởi tạo xong!")
+            except Exception as e:
+                print(f"❌ Background Thread: Telegram Bot init failed: {e}")
+                traceback.print_exc()
+
+        # Tạo daemon thread
+        telegram_thread = threading.Thread(target=init_telegram_bot_thread, daemon=True)
+        telegram_thread.start()
+        print("✅ Telegram Bot background thread started (không đợi init xong)")
+    except Exception as e:
+        print(f"⚠️ Failed to create Telegram Bot thread: {e}")
+        print("   (Bot sẽ không hoạt động, nhưng hệ thống vẫn chạy)")
+        traceback.print_exc()
+
+    print("\n" + "="*60)
+    print("🎉 STARTUP EVENT HOÀN THÀNH!")
+    print("="*60 + "\n")
 
 # ============================================================================
 # PHẦN 5: XỬ LÝ TÍN HIỆU (CTRL+C)

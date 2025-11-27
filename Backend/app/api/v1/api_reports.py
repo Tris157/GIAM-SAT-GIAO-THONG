@@ -9,6 +9,7 @@ import csv
 import json
 
 from app.db.database import get_db
+from app.db.base import get_db_sync
 from app.models.traffic_record import TrafficRecord
 from app.schemas.traffic_record import (
     TrafficRecordCreate,
@@ -100,12 +101,12 @@ async def get_traffic_records(
     return records
 
 
-@router.post("/reports/generate", response_model=ReportResponse)
-async def generate_report(
+# Helper function (SYNC) for PDF/Excel exports
+def _generate_report_sync(
     filter_params: ReportFilter,
-    db: Session = Depends(get_db)
-):
-    """Generate comprehensive traffic report"""
+    db: Session
+) -> ReportResponse:
+    """Generate comprehensive traffic report (SYNC version for report exports)"""
 
     # Build base query
     query = db.query(TrafficRecord)
@@ -251,6 +252,16 @@ async def generate_report(
     )
 
 
+# API endpoint (uses sync session for .query() support)
+@router.post("/reports/generate", response_model=ReportResponse)
+def generate_report(
+    filter_params: ReportFilter,
+    db: Session = Depends(get_db_sync)
+):
+    """Generate comprehensive traffic report via API"""
+    return _generate_report_sync(filter_params, db)
+
+
 @router.get("/reports/export/csv")
 async def export_csv(
     road_name: Optional[str] = None,
@@ -361,7 +372,7 @@ async def export_json(
 @router.post("/reports/export/pdf")
 async def export_pdf_report(
     filter_params: ReportFilter,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Export comprehensive traffic report to PDF with charts
@@ -372,8 +383,8 @@ async def export_pdf_report(
     - Daily traffic trends chart
     - Road comparison charts
     """
-    # Generate report data first
-    report = await generate_report(filter_params, db)
+    # Generate report data first (sync call, no await)
+    report = _generate_report_sync(filter_params, db)
 
     # Generate PDF
     pdf_bytes = report_export_service.generate_pdf_report(
@@ -397,7 +408,7 @@ async def export_pdf_report(
 @router.post("/reports/export/excel")
 async def export_excel_report(
     filter_params: ReportFilter,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Export comprehensive traffic report to Excel with multiple sheets and charts
@@ -408,8 +419,8 @@ async def export_excel_report(
     - Daily trends sheet with line chart
     - Road comparison sheet with bar chart
     """
-    # Generate report data first
-    report = await generate_report(filter_params, db)
+    # Generate report data first (sync call, no await)
+    report = _generate_report_sync(filter_params, db)
 
     # Generate Excel
     excel_bytes = report_export_service.generate_excel_report(

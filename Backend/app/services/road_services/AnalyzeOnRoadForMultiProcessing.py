@@ -56,11 +56,16 @@ class AnalyzeOnRoadForMultiprocessing():
         self.processes = []
         self.names = []
         self.is_join_processes = is_join_processes
-        
+
         # Đăng ký signal handler để xử lý Ctrl+C
-        signal.signal(signal.SIGINT, self._signal_handler)
-        signal.signal(signal.SIGTERM, self._signal_handler)
-        
+        # CHỈ đăng ký nếu đang trong main thread (không phải background thread)
+        try:
+            signal.signal(signal.SIGINT, self._signal_handler)
+            signal.signal(signal.SIGTERM, self._signal_handler)
+        except ValueError:
+            # Nếu không phải main thread, bỏ qua (signal handler đã được đăng ký ở main.py)
+            pass
+
         # Đăng ký cleanup khi exit
         atexit.register(self.cleanup_processes)
 
