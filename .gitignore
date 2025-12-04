@@ -98,3 +98,5 @@ nul
 *.swp
 *.swo
 *~
+# MegaLLM Configuration
+.claude/settings.local.json

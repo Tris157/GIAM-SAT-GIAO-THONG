@@ -28,6 +28,7 @@ from app.api.v1 import api_rtsp  # Router xử lý camera RTSP real-time
 from app.api.v1 import api_auth  # Router xử lý đăng nhập/đăng ký
 from app.api.v1 import api_weather  # Router xử lý thông tin thời tiết
 from app.api.v1 import api_violations  # Router xử lý vi phạm giao thông
+from app.api.v1 import api_debug_light  # Router DEBUG light detection (NEW)
 from app.api.v1 import state  # Module lưu trạng thái global (analyzer, v.v.)
 
 from fastapi import FastAPI  # Framework web FastAPI chính
@@ -162,15 +163,22 @@ async def startup_event():
         print(f"❌ Failed to create scheduler task: {e}")
         traceback.print_exc()
 
-    # --- BƯỚC 4: KẾT NỐI RTSP CAMERA (TẠM TẮT) ---
-    # Camera RTSP có thể không còn hoạt động, tạm comment để tránh block
-    # from app.api.v1.api_rtsp import rtsp_detection_manager, read_rtsp_detection_frames
-    # rtsp_url = "rtsp://iocqnm:Quangnam$ioc2020@113.174.246.181:554/h264/ch1/main/av_stream"
-    # success = rtsp_detection_manager.add_stream("camera_live", rtsp_url)
-    # if success:
-    #     print("✅ RTSP camera connected")
-    #     asyncio.create_task(read_rtsp_detection_frames("camera_live"))
-    print("ℹ️ RTSP camera: Tạm tắt (có thể bật lại sau)")
+    # --- BƯỚC 4: KẾT NỐI RTSP CAMERA ---
+    from app.core.config import settings
+    if settings.ENABLE_RTSP and settings.RTSP_URL:
+        try:
+            from app.api.v1.api_rtsp import rtsp_detection_manager, read_rtsp_detection_frames
+            print(f"🔄 Connecting to RTSP Camera: {settings.RTSP_URL}...")
+            success = rtsp_detection_manager.add_stream("camera_live", settings.RTSP_URL)
+            if success:
+                print("✅ RTSP camera connected")
+                asyncio.create_task(read_rtsp_detection_frames("camera_live"))
+            else:
+                print("❌ Failed to connect to RTSP camera")
+        except Exception as e:
+            print(f"❌ Error connecting to RTSP: {e}")
+    else:
+        print("ℹ️ RTSP camera: Disabled (Enable in .env)")
 
     # --- BƯỚC 5: KHỞI ĐỘNG TELEGRAM BOT (BACKGROUND THREAD) ---
     try:
@@ -294,6 +302,13 @@ app.include_router(
     api_violations.router,
     prefix="/api/v1",
     tags=["traffic violations"]
+)
+
+# Router 8: Debug Light Detection (NEW - for debugging traffic light detection)
+app.include_router(
+    api_debug_light.router,
+    prefix="/api/v1",
+    tags=["debug"]
 )
 
 # ============================================================================

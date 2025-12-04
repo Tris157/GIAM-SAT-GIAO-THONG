@@ -267,13 +267,41 @@ Powered by Smart Traffic Monitoring System
                 camera_info += f"  {status_icon} {camera_name}: {status.upper()}\n"
 
             # Format thống kê giao thông
-            traffic_info = f"""
-📊 **Lưu lượng giao thông:**
-  🚗 Ô tô: {traffic_stats.get('cars', 0)} xe
-  🏍️ Xe máy: {traffic_stats.get('motors', 0)} xe
-  🚚 Xe tải: {traffic_stats.get('trucks', 0)} xe
-  🚌 Xe buýt: {traffic_stats.get('buses', 0)} xe
+            cars_count = traffic_stats.get('cars', 0)
+            motors_count = traffic_stats.get('motors', 0)
+            trucks_count = traffic_stats.get('trucks', 0)
+            buses_count = traffic_stats.get('buses', 0)
+            total_vehicles = cars_count + motors_count + trucks_count + buses_count
+
+            if total_vehicles > 0:
+                traffic_info = f"""📊 **Lưu lượng giao thông:**
+  🚗 Ô tô: {cars_count} xe
+  🏍️ Xe máy: {motors_count} xe
+  🚚 Xe tải: {trucks_count} xe
+  🚌 Xe buýt: {buses_count} xe
+  📈 **Tổng:** {total_vehicles} xe
 """
+            else:
+                traffic_info = """📊 **Lưu lượng giao thông:**
+  ⚠️ Không có dữ liệu (Analyzer chưa chạy hoặc chưa có xe)
+"""
+
+            # Tạo phần thông báo về violations
+            if total_violations > 0:
+                violations_section = f"""📊 **Tổng số vi phạm:** {total_violations} lượt
+
+📋 **Chi tiết theo loại xe:**
+{violations_breakdown}
+✅ **Đã xử lý:** {processed_count} ({processing_rate:.1f}%)
+⏳ **Chưa xử lý:** {unprocessed_count}
+
+⏰ **Giờ cao điểm vi phạm:**
+{peak_hours}"""
+            else:
+                violations_section = """📊 **Tổng số vi phạm:** 0 lượt
+
+✨ **Tuyệt vời!** Không có vi phạm nào trong khoảng thời gian này.
+Hệ thống đang hoạt động ổn định."""
 
             # Tạo message báo cáo
             message = f"""
@@ -287,16 +315,7 @@ Powered by Smart Traffic Monitoring System
 🚨 **VI PHẠM GIAO THÔNG**
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📊 **Tổng số vi phạm:** {total_violations} lượt
-
-📋 **Chi tiết theo loại xe:**
-{violations_breakdown if violations_breakdown else '  Không có dữ liệu'}
-
-✅ **Đã xử lý:** {processed_count} ({processing_rate:.1f}%)
-⏳ **Chưa xử lý:** {unprocessed_count}
-
-⏰ **Giờ cao điểm vi phạm:**
-{peak_hours if peak_hours else '  Không có dữ liệu'}
+{violations_section}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📹 **TRẠNG THÁI CAMERA**

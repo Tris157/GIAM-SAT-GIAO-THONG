@@ -25,8 +25,8 @@ class AnalyzeOnRoadForMultiprocessing():
         của các process với nhau chặt chẽ hơn
         processes (list): các process con đang chạy 
     """
-    def __init__(self, regions = conf.REGIONS, path_videos = conf.PATH_VIDEOS,
-        meter_per_pixels = conf.METER_PER_PIXELS, show_log = False, show = False, is_join_processes = False):
+    def __init__(self, regions=None, path_videos=None,
+        meter_per_pixels=None, show_log=False, show=False, is_join_processes=False):
         """Khi tích hợp API vào thiết kế do cơ chế envent loop vòng lặp bất tận nên không cần join
         các process lại để tránh bị kill. Do đó phải đặt is_join_processes = False nếu không nó sẽ chặn
         envent loop của api khiến server nghẽn
@@ -38,17 +38,17 @@ class AnalyzeOnRoadForMultiprocessing():
         
         Args:
             path_videos (list, optional): Đường dẫn các video. 
-            Defaults to [ "./video_test/Văn Quán.mp4", "./video_test/Văn Phú.mp4", "./video_test/Nguyễn Trãi.mp4", "./video_test/Ngã Tư Sở.mp4", "./video_test/Đường Láng.mp4", ].
+            Defaults to None (use conf.PATH_VIDEOS).
             meter_per_pixels (list, optional): list các tỉ số met/pixel. 
-            Defaults to [0.03, 0.09, 0.4, 0.11, 0.06].
+            Defaults to None (use conf.METER_PER_PIXELS).
             show_log (bool, optional): hiển thị log hoặc không. Defaults to False.
             show (bool, optional): hiển thị video bằng cv2 hoặc không. Defaults to False.
             is_join_processes (bool, optional): join các process con lại (nên tắt đi khi tích hợp api). 
             Defaults to True.
         """
-        self.path_videos = path_videos
-        self.meter_per_pixels = meter_per_pixels
-        self.regions = regions
+        self.path_videos = path_videos if path_videos is not None else conf.PATH_VIDEOS
+        self.meter_per_pixels = meter_per_pixels if meter_per_pixels is not None else conf.METER_PER_PIXELS
+        self.regions = regions if regions is not None else conf.REGIONS
         self.manager = Manager()
         self.shared_data = self.manager.dict()  # Dùng để lưu trữ thông tin chung giữa các process
         self.show_log = show_log

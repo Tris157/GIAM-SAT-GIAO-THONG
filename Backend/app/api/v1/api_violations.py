@@ -731,13 +731,66 @@ async def send_system_report_telegram(
         if not camera_status:
             camera_status = {"camera_live": "unknown"}
 
-        # Thống kê lưu lượng giao thông (mock data - có thể tích hợp thật sau)
+        # ============= LẤY DỮ LIỆU GIAO THÔNG THẬT =============
+        from app.api.v1 import state
+        from app.models.traffic_record import TrafficRecord
+
         traffic_stats = {
-            "cars": violations_by_type.get("car", 0) * 10,  # Estimate
-            "motors": violations_by_type.get("motor", 0) * 10,
+            "cars": 0,
+            "motors": 0,
             "trucks": 0,
             "buses": 0
         }
+
+        # PRIORITY 1: Lấy từ RTSP Camera (Real-time)
+        try:
+            from app.api.v1.api_rtsp import rtsp_detection_manager
+            from app.core.config import settings
+
+            if settings.ENABLE_RTSP and rtsp_detection_manager:
+                camera_stream = rtsp_detection_manager.get_stream("camera_live")
+                if camera_stream:
+                    detections = await camera_stream.get_detections()
+                    traffic_stats["cars"] = detections.get("count_car", 0)
+                    traffic_stats["motors"] = detections.get("count_motor", 0)
+                    print(f"✅ Lấy data từ RTSP camera: Cars={traffic_stats['cars']}, Motors={traffic_stats['motors']}")
+        except Exception as e:
+            print(f"⚠️ Không lấy được data từ RTSP camera: {e}")
+
+        # PRIORITY 2: Fallback sang Analyzer (Test videos) nếu RTSP không có data
+        if traffic_stats["cars"] == 0 and traffic_stats["motors"] == 0:
+            if state.analyzer and state.analyzer.shared_data:
+                total_cars = 0
+                total_motors = 0
+
+                for road_name, data in state.analyzer.shared_data.items():
+                    if isinstance(data, dict):
+                        total_cars += data.get('count_car', 0)
+                        total_motors += data.get('count_motor', 0)
+
+                traffic_stats["cars"] = total_cars
+                traffic_stats["motors"] = total_motors
+                print(f"✅ Lấy data từ Analyzer (test videos): Cars={total_cars}, Motors={total_motors}")
+
+        # PRIORITY 3: Fallback sang TrafficRecord (historical data)
+        if traffic_stats["cars"] == 0 and traffic_stats["motors"] == 0:
+            try:
+                # Query TrafficRecord trong khoảng thời gian
+                traffic_query = select(TrafficRecord).where(
+                    TrafficRecord.recorded_at >= start_date
+                )
+                traffic_result = await db.execute(traffic_query)
+                traffic_records = traffic_result.scalars().all()
+
+                if traffic_records:
+                    # Tính trung bình hoặc tổng
+                    avg_cars = int(sum(r.count_car for r in traffic_records) / len(traffic_records))
+                    avg_motors = int(sum(r.count_motor for r in traffic_records) / len(traffic_records))
+
+                    traffic_stats["cars"] = avg_cars
+                    traffic_stats["motors"] = avg_motors
+            except Exception as e:
+                print(f"⚠️ Không lấy được TrafficRecord: {e}")
 
         # System uptime (tính từ khi start app)
         # TODO: Track start time thực tế

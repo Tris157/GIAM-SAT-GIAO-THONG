@@ -10,6 +10,10 @@ class SettingServer:
     JWT_SECRET = os.getenv("JWT_SECRET_KEY")
     JWT_ALGORITHM = os.getenv("JWT_ALGORITHM")
     ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
+    
+    # RTSP Configuration
+    ENABLE_RTSP = os.getenv("ENABLE_RTSP", "False").lower() == "true"
+    RTSP_URL = os.getenv("RTSP_URL", "")
 
 
 class SettingMetricTransport:

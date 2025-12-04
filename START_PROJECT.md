@@ -9,10 +9,10 @@
   - Database đã kết nối
   - API Docs: http://localhost:8000/docs
 
-- ✅ **Frontend**: http://localhost:3000
-  - HTML/CSS/JS thuần
-  - Python HTTP Server
-  - Login Page: http://localhost:3000/login.html
+  - ✅ **Frontend**: http://localhost:5173
+  - React 19 + Vite
+  - TailwindCSS v4
+  - Login Page: http://localhost:5173/login
 
 ---
 
@@ -21,12 +21,12 @@
 ### **Mở trình duyệt và truy cập:**
 
 ```
-http://localhost:3000
+http://localhost:5173
 ```
 
 **Hoặc trực tiếp:**
 ```
-http://localhost:3000/login.html
+http://localhost:5173/login
 ```
 
 ---
@@ -41,11 +41,11 @@ http://localhost:3000/login.html
 ✅ API Endpoints: /auth/login, /auth/register, /api/*
 ```
 
-### **2. Frontend (Vanilla HTML/CSS/JS)**
+### **2. Frontend (React/Vite)**
 ```bash
-✅ Đã khởi động: python -m http.server 3000
-✅ Port: 3000
-✅ Pages: index.html, login.html, register.html, dashboard.html
+✅ Đã khởi động: npm run dev
+✅ Port: 5173
+✅ Tech stack: React 19, Vite, TailwindCSS
 ```
 
 ---
@@ -59,7 +59,7 @@ http://localhost:3000/login.html
 
 ### **Bước 2: Tạo tài khoản mới**
 - Click "Sign up" ở cuối trang login
-- Hoặc truy cập: http://localhost:3000/register.html
+- Hoặc truy cập: http://localhost:5173/register
 - Điền thông tin:
   - Username: test
   - Email: test@example.com
@@ -72,7 +72,7 @@ http://localhost:3000/login.html
 - Click "Sign In"
 
 ### **Bước 4: Xem Dashboard**
-- Sau khi login thành công sẽ redirect tới: http://localhost:3000/dashboard.html
+- Sau khi login thành công sẽ redirect tới: http://localhost:5173/dashboard
 - Xem thông tin user
 - Xem statistics
 - Test logout
@@ -127,7 +127,8 @@ python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ### **Terminal 2 - Frontend:**
 ```bash
 cd Frontend
-python -m http.server 3000
+npm install  # Chỉ chạy lần đầu
+npm run dev
 ```
 
 ---
@@ -167,11 +168,12 @@ python -m uvicorn app.main:app --port 8001
 
 ### **Nếu Frontend không chạy:**
 ```bash
-# Kiểm tra port 3000
-netstat -ano | findstr :3000
+# Kiểm tra node_modules đã cài chưa
+cd Frontend
+npm install
 
-# Thử port khác
-python -m http.server 3001
+# Chạy lại dev server
+npm run dev
 ```
 
 ### **Nếu có lỗi CORS:**
@@ -184,7 +186,7 @@ Backend đã có CORS middleware, nhưng nếu vẫn lỗi:
 1. Mở Console trong browser (F12)
 2. Xem tab Network để check API calls
 3. Xem tab Console để check JavaScript errors
-4. Kiểm tra API_BASE_URL trong `Frontend/js/login.js`
+4. Kiểm tra API_BASE_URL trong `Frontend/src/config.ts`
 
 ---
 
@@ -192,10 +194,10 @@ Backend đã có CORS middleware, nhưng nếu vẫn lỗi:
 
 | Trang | URL | Mô tả |
 |-------|-----|-------|
-| **Home** | http://localhost:3000 | Redirect to Login |
-| **Login** | http://localhost:3000/login.html | Đăng nhập |
-| **Register** | http://localhost:3000/register.html | Đăng ký tài khoản |
-| **Dashboard** | http://localhost:3000/dashboard.html | Dashboard chính |
+| **Home** | http://localhost:5173 | Redirect to Login |
+| **Login** | http://localhost:5173/login | Đăng nhập |
+| **Register** | http://localhost:5173/register | Đăng ký tài khoản |
+| **Dashboard** | http://localhost:5173/dashboard | Dashboard chính |
 | **API Docs** | http://localhost:8000/docs | Swagger UI |
 | **ReDoc** | http://localhost:8000/redoc | Alternative API docs |
 
@@ -215,7 +217,7 @@ Backend đã có CORS middleware, nhưng nếu vẫn lỗi:
 - Test logout và re-login
 
 ### **Customization:**
-- Đổi màu: Edit `Frontend/css/login.css`
+- Đổi màu: Edit `Frontend/src/index.css` hoặc Tailwind config
 - Đổi animation speed: Tìm `animation:` trong CSS
 - Thêm features: Edit các file `.js`
 
@@ -226,7 +228,7 @@ Backend đã có CORS middleware, nhưng nếu vẫn lỗi:
 **Dự án đã chạy thành công!** 🚀
 
 Bạn có thể:
-- ✅ Truy cập http://localhost:3000
+- ✅ Truy cập http://localhost:5173
 - ✅ Tạo tài khoản mới
 - ✅ Đăng nhập
 - ✅ Xem dashboard

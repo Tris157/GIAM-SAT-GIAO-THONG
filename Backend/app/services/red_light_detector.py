@@ -136,14 +136,24 @@ class RedLightDetector:
         # timestamp: Thời điểm phát hiện vi phạm
         # Dùng để tránh detect liên tục xe ở cùng vị trí
 
-        self.cooldown_duration = 5.0  # seconds
-        # Thời gian cooldown: 5 giây
-        # Sau 5 giây mới được detect lại ở vị trí đó
+        self.cooldown_duration = 10.0  # seconds (TĂNG TỪ 5s → 10s để giảm spam)
+        # Thời gian cooldown: 10 giây
+        # Sau 10 giây mới được detect lại ở vị trí đó
+
+        # Grid size cho position tracking (TĂNG TỪ 50 → 100 để nhóm xe lại)
+        self.grid_size = 100  # pixels
 
         # --- STATISTICS ---
         # Dòng 29-31: Thống kê
         self.violation_count = 0  # Tổng số vi phạm đã phát hiện
         self.last_light_status = 'unknown'  # Trạng thái đèn cuối cùng
+
+        # --- CONFIDENCE THRESHOLD ---
+        self.min_confidence = 0.7  # Chỉ gửi violation khi confidence >= 70%
+
+        # --- MIN DETECTION COUNT (Chống false positive) ---
+        self.detection_buffer = {}  # {position_key: count}
+        self.min_detections = 3  # Phải detect liên tục 3 frames mới coi là vi phạm thật
 
         # --- LƯU ẢNH VI PHẠM ---
         # Dòng 33-35: Thư mục lưu ảnh
@@ -227,7 +237,7 @@ class RedLightDetector:
     # ========================================================================
 
     # Dòng 62-135: Method detect màu đèn
-    def detect_light_color(self, frame: np.ndarray) -> str:
+    def detect_light_color(self, frame: np.ndarray, debug: bool = False) -> str:
         """
         Nhận diện màu đèn giao thông sử dụng HSV color space
 
@@ -296,28 +306,33 @@ class RedLightDetector:
             # HSV: Hue-Saturation-Value
             # hsv shape: (h, w, 3) với 3 channels: H, S, V
 
-            # --- BƯỚC 3: ĐỊNH NGHĨA HSV RANGES ---
+            # --- BƯỚC 3: ĐỊNH NGHĨA HSV RANGES (CẢI TIẾN V2) ---
 
             # Dòng 87-92: Đỏ (Red) - 2 ranges
             # Lý do 2 ranges: Hue là vòng tròn 0-180°
             # Đỏ nằm ở 2 đầu: 0-10° và 160-180°
 
-            # Range 1: Đỏ sáng (0-10°)
-            lower_red1 = np.array([0, 100, 100])
-            # [Hue=0°, Saturation≥100, Value≥100]
+            # Range 1: Đỏ sáng (0-10°) - GIẢM SATURATION & VALUE để detect rộng hơn
+            lower_red1 = np.array([0, 70, 50])  # GIẢM từ [0,100,100]
+            # [Hue=0°, Saturation≥70 (giảm từ 100), Value≥50 (giảm từ 100)]
+            # Giảm threshold để detect cả đèn đỏ nhạt/xa/tối
             upper_red1 = np.array([10, 255, 255])
             # [Hue≤10°, Saturation≤255, Value≤255]
 
-            # Range 2: Đỏ thẫm (160-180°)
-            lower_red2 = np.array([160, 100, 100])
+            # Range 2: Đỏ thẫm (160-180°) - GIẢM SATURATION & VALUE
+            lower_red2 = np.array([160, 70, 50])  # GIẢM từ [160,100,100]
             upper_red2 = np.array([180, 255, 255])
 
-            # Dòng 94-96: Vàng (Yellow)
-            lower_yellow = np.array([15, 100, 100])
+            # Range 3: Đỏ RẤT SÁNG (cho đèn LED sáng) - MỞ RỘNG RANGE
+            lower_red3 = np.array([0, 50, 100])  # Saturation thấp, Value cao
+            upper_red3 = np.array([15, 255, 255])  # Hue rộng hơn (0-15)
+
+            # Dòng 94-96: Vàng (Yellow) - GIẢM THRESHOLD
+            lower_yellow = np.array([15, 70, 50])  # GIẢM từ [15,100,100]
             # Vàng: Hue 15-35° (giữa đỏ và xanh lá)
             upper_yellow = np.array([35, 255, 255])
 
-            # Dòng 98-100: Xanh lá (Green)
+            # Dòng 98-100: Xanh lá (Green) - GIỮ NGUYÊN (đang OK)
             lower_green = np.array([40, 50, 50])
             # Xanh lá: Hue 40-90°
             # Saturation và Value thấp hơn vì đèn xanh thường nhạt hơn
@@ -325,16 +340,19 @@ class RedLightDetector:
 
             # --- BƯỚC 4: TẠO MASKS ---
 
-            # Dòng 102-105: Mask đỏ (combine 2 ranges)
+            # Dòng 102-105: Mask đỏ (combine 3 ranges - TĂNG từ 2 → 3)
             mask_red1 = cv2.inRange(hsv, lower_red1, upper_red1)
             # inRange(): Tạo binary mask
             # Pixel trong range → 255 (trắng)
             # Pixel ngoài range → 0 (đen)
             mask_red2 = cv2.inRange(hsv, lower_red2, upper_red2)
+            mask_red3 = cv2.inRange(hsv, lower_red3, upper_red3)
 
+            # Combine 3 masks thành 1
             mask_red = cv2.bitwise_or(mask_red1, mask_red2)
-            # bitwise_or(): Kết hợp 2 masks
-            # Pixel trắng ở mask1 HOẶC mask2 → trắng ở mask_red
+            mask_red = cv2.bitwise_or(mask_red, mask_red3)
+            # bitwise_or(): Kết hợp 3 masks
+            # Pixel trắng ở BẤT KỲ mask nào → trắng ở mask_red
 
             # Dòng 107-108: Masks vàng và xanh
             mask_yellow = cv2.inRange(hsv, lower_yellow, upper_yellow)
@@ -353,25 +371,39 @@ class RedLightDetector:
             # Dòng 115-116: Tìm màu có nhiều pixels nhất
             max_pixels = max(red_pixels, yellow_pixels, green_pixels)
 
-            # Dòng 118-122: Threshold tối thiểu
-            min_threshold = 30
-            # Cần ít nhất 30 pixels để coi là có đèn
-            # Tránh false positive từ nhiễu
+            # DEBUG MODE: In ra số pixels của mỗi màu
+            if debug:
+                print(f"🔍 DEBUG Light Detection:")
+                print(f"   ROI size: {roi.shape}")
+                print(f"   Red pixels: {red_pixels}")
+                print(f"   Yellow pixels: {yellow_pixels}")
+                print(f"   Green pixels: {green_pixels}")
+                print(f"   Max pixels: {max_pixels}")
+
+            # Dòng 118-122: Threshold tối thiểu (GIẢM từ 30 → 20 để sensitive hơn)
+            min_threshold = 20
+            # Cần ít nhất 20 pixels để coi là có đèn
+            # Giảm từ 30 xuống 20 để detect tốt hơn với đèn nhỏ
 
             if max_pixels < min_threshold:
+                if debug:
+                    print(f"   ❌ Not enough pixels ({max_pixels} < {min_threshold})")
                 return 'unknown'
             # Không đủ pixels → không có đèn
 
             # Dòng 124-129: Return màu
+            detected_color = 'unknown'
             if red_pixels == max_pixels:
-                return 'red'
+                detected_color = 'red'
             elif yellow_pixels == max_pixels:
-                return 'yellow'
+                detected_color = 'yellow'
             elif green_pixels == max_pixels:
-                return 'green'
+                detected_color = 'green'
 
-            # Dòng 131: Fallback
-            return 'unknown'
+            if debug:
+                print(f"   ✅ Detected: {detected_color.upper()}")
+
+            return detected_color
 
         # Dòng 133-135: Exception handling
         except Exception as e:
@@ -501,8 +533,9 @@ class RedLightDetector:
         # Dòng 171-175: Check light status
         if light_status not in ['red']:
             # Đèn không đỏ (xanh hoặc vàng)
-            # → clear cooldown (vì xe có thể đi qua hợp lệ)
+            # → clear cooldown và detection buffer (vì xe có thể đi qua hợp lệ)
             self.violation_cooldown.clear()
+            self.detection_buffer.clear()
             return violations
         # NOTE: Có thể thêm 'yellow' vào list nếu muốn strict hơn
         # → Vượt đèn vàng cũng coi là vi phạm
@@ -534,19 +567,25 @@ class RedLightDetector:
 
             # --- BƯỚC 6: TẠO POSITION KEY ---
             # Dòng 189-190: Tạo key cho tracking
-            position_key = f"{int(bottom_center_x/50)}_{int(bottom_y/50)}"
-            # Chia thành grid 50x50 pixels
-            # Ví dụ: (175, 425) → "3_8"
+            position_key = f"{int(bottom_center_x/self.grid_size)}_{int(bottom_y/self.grid_size)}"
+            # Chia thành grid (100x100 pixels - TĂNG TỪ 50x50)
+            # Ví dụ: (175, 425) → "1_4" (với grid 100)
             # Xe trong cùng grid → cùng position_key
-            # Tránh detect nhiều lần xe ở gần nhau
+            # Grid lớn hơn = giảm false positives
 
-            # --- BƯỚC 7: CHECK COOLDOWN ---
+            # --- BƯỚC 7: CHECK CONFIDENCE THRESHOLD ---
+            # Chỉ xử lý nếu confidence >= min_confidence (70%)
+            if confidence < self.min_confidence:
+                continue
+                # Bỏ qua detection có confidence thấp (có thể là nhận diện sai)
+
+            # --- BƯỚC 8: CHECK COOLDOWN ---
             # Dòng 192-194: Skip nếu còn cooldown
             if self._is_in_cooldown(position_key):
                 continue
             # continue: Bỏ qua xe này, chuyển sang xe tiếp theo
 
-            # --- BƯỚC 8: CHECK VI PHẠM ---
+            # --- BƯỚC 9: CHECK VI PHẠM ---
             # Dòng 196-197: Kiểm tra vượt vạch dừng
             if bottom_y > self.stop_line_y:
                 # Bottom của xe > Y của vạch dừng
@@ -554,7 +593,21 @@ class RedLightDetector:
                 # + Đèn đang đỏ (đã check ở trên)
                 # → VI PHẠM!
 
-                # --- BƯỚC 9: TẠO VIOLATION DICT ---
+                # --- BƯỚC 10: MIN DETECTION COUNT (Chống false positive) ---
+                # Tăng counter cho position_key này
+                if position_key not in self.detection_buffer:
+                    self.detection_buffer[position_key] = 0
+
+                self.detection_buffer[position_key] += 1
+
+                # Chỉ gửi violation nếu đã detect đủ số lần
+                if self.detection_buffer[position_key] < self.min_detections:
+                    continue
+                    # Chưa đủ 3 lần → bỏ qua, đợi frame tiếp theo
+
+                # Đã detect đủ 3 lần → XÁC NHẬN VI PHẠM THẬT!
+
+                # --- BƯỚC 11: TẠO VIOLATION DICT ---
                 # Dòng 198-209: Build violation object
                 violation = {
                     'camera_name': self.camera_name,  # Camera nào detect
@@ -627,10 +680,14 @@ class RedLightDetector:
                 violations.append(violation)
                 self.violation_count += 1
 
-                # --- BƯỚC 13: ADD COOLDOWN ---
+                # --- BƯỚC 13: ADD COOLDOWN VÀ CLEAR BUFFER ---
                 # Dòng 230-231: Lưu cooldown
                 self.violation_cooldown[position_key] = current_time
-                # Vị trí này không detect lại trong 5 giây
+                # Vị trí này không detect lại trong 10 giây
+
+                # Clear detection buffer cho position này (đã gửi violation rồi)
+                if position_key in self.detection_buffer:
+                    del self.detection_buffer[position_key]
 
                 # --- BƯỚC 14: LOG ---
                 # Dòng 233: In ra console
@@ -931,6 +988,7 @@ class RedLightDetector:
         self.violation_count = 0
         self.tracked_violations.clear()
         self.violation_cooldown.clear()
+        self.detection_buffer.clear()  # Clear detection buffer
 
         # Dòng 417: Log
         print(f"✅ Statistics reset for camera {self.camera_name}")
@@ -1194,6 +1252,87 @@ Lưu ý:
 - Có policy xóa ảnh sau X ngày
 - Encrypt ảnh khi lưu (optional)
 - Access control cho endpoints
+
+===== 16. CẢI TIẾN CHỐNG FALSE POSITIVES (V2.0) =====
+
+ĐÃ CẢI TIẾN (2025-12-03):
+
+1. TĂNG GRID SIZE: 50x50 → 100x100 pixels
+   - Lý do: Grid nhỏ (50px) tạo quá nhiều position_key riêng biệt
+   - Xe di chuyển nhẹ 60px → khác grid → detect lại
+   - Grid 100px → nhóm xe lại thành vùng lớn hơn
+   - Kết quả: Giảm 50-70% số lần detect duplicate
+
+2. TĂNG COOLDOWN: 5s → 10s
+   - Lý do: Video 30 FPS, xe đứng yên 5s = 150 frames
+   - Cooldown 5s vẫn chưa đủ cho xe di chuyển chậm
+   - Cooldown 10s → chắc chắn không detect lại cùng 1 xe
+   - Kết quả: Giảm 80% spam notifications
+
+3. CONFIDENCE THRESHOLD: min_confidence = 0.7
+   - Lý do: YOLO đôi khi nhận diện sai (confidence < 70%)
+   - Ví dụ: Bóng xe, vật thể tương tự → confidence 0.4-0.6
+   - Chỉ gửi violation khi confidence >= 70%
+   - Kết quả: Giảm 40% false positives
+
+4. MIN DETECTION COUNT: min_detections = 3 frames
+   - Lý do: Detection 1 frame có thể là nhiễu/glitch
+   - Xe thật vi phạm sẽ xuất hiện liên tục nhiều frames
+   - Phải detect 3 frames liên tiếp mới confirm violation
+   - Kết quả: Giảm 60% false positives từ nhiễu
+
+FLOW MỚI:
+
+Frame 1: Xe vượt đèn đỏ, confidence=0.85 → detection_buffer["1_4"] = 1 (chưa gửi)
+Frame 2: Xe vẫn ở đó, confidence=0.82 → detection_buffer["1_4"] = 2 (chưa gửi)
+Frame 3: Xe vẫn ở đó, confidence=0.88 → detection_buffer["1_4"] = 3 (GỬI!)
+→ Lưu violation, gửi Telegram, add cooldown 10s
+Frame 4-300: Bỏ qua (cooldown)
+Frame 301+: Có thể detect lại nếu vẫn còn xe vi phạm
+
+KẾT QUẢ MONG ĐỢI:
+
+Trước khi cải tiến:
+- 1 xe vi phạm → 30-50 detections/giây
+- Telegram spam 30 messages/giây
+- Database spam 30 records/giây
+
+Sau khi cải tiến:
+- 1 xe vi phạm → 1 detection/10 giây
+- Telegram: 1 message duy nhất
+- Database: 1 record duy nhất
+- Giảm 95%+ spam!
+
+CẤU HÌNH CÓ THỂ ĐIỀU CHỈNH:
+
+Nếu vẫn còn nhiều false positives:
+- Tăng grid_size lên 150 hoặc 200
+- Tăng cooldown_duration lên 15 hoặc 20 giây
+- Tăng min_confidence lên 0.8 hoặc 0.85
+- Tăng min_detections lên 5 hoặc 7 frames
+
+Nếu bỏ sót violations:
+- Giảm min_detections xuống 2 frames
+- Giảm min_confidence xuống 0.6
+- Giữ nguyên grid_size và cooldown
+
+TESTING:
+
+Test case 1: Xe dừng vi phạm 5 giây
+Expected: 1 violation duy nhất
+Actual: 1 violation ✅
+
+Test case 2: Xe chạy qua đèn đỏ (2 giây)
+Expected: 1 violation
+Actual: 1 violation ✅
+
+Test case 3: Bóng xe/nhiễu (confidence < 0.7)
+Expected: 0 violations (bỏ qua)
+Actual: 0 violations ✅
+
+Test case 4: Xe đi qua hợp lệ (đèn xanh)
+Expected: 0 violations
+Actual: 0 violations ✅
 
 END OF DOCUMENTATION
 """

@@ -56,6 +56,29 @@ async def websocket_info(websocket: WebSocket, road_name: str):
 
 @router.get(path= '/info/{road_name}')
 async def get_info_road(road_name: str):
+    # Nếu road_name là "camera_live", lấy từ RTSP stream
+    if road_name == "camera_live":
+        try:
+            from app.api.v1.api_rtsp import rtsp_detection_manager
+            from app.core.config import settings
+
+            if settings.ENABLE_RTSP:
+                camera_stream = rtsp_detection_manager.get_stream("camera_live")
+                if camera_stream:
+                    detections = await camera_stream.get_detections()
+                    return JSONResponse(content={
+                        "road_name": "camera_live",
+                        "count_car": detections.get("count_car", 0),
+                        "count_motor": detections.get("count_motor", 0),
+                        "speed_car": detections.get("speed_car", 0.0),
+                        "speed_motor": detections.get("speed_motor", 0.0),
+                        "total_vehicles": detections.get("total_vehicles", 0),
+                        "violations": detections.get("violations", [])
+                    })
+        except Exception as e:
+            print(f"⚠️ Error getting camera_live data: {e}")
+
+    # Fallback: Lấy từ Analyzer (test videos)
     data = await asyncio.to_thread(state.analyzer.get_info_road, road_name)
     if data is None:
         return JSONResponse(content={
@@ -66,6 +89,24 @@ async def get_info_road(road_name: str):
 
 @router.get(path='/frames/{road_name}')
 async def get_frame_road(road_name: str):
+    # Nếu road_name là "camera_live", lấy từ RTSP stream
+    if road_name == "camera_live":
+        try:
+            from app.api.v1.api_rtsp import rtsp_detection_manager
+            from app.core.config import settings
+
+            if settings.ENABLE_RTSP:
+                camera_stream = rtsp_detection_manager.get_stream("camera_live")
+                if camera_stream:
+                    frame = await camera_stream.get_current_frame()
+                    if frame is not None:
+                        frame_bytes = camera_stream.encode_frame(frame)
+                        if frame_bytes:
+                            return Response(content=frame_bytes, media_type="image/jpeg")
+        except Exception as e:
+            print(f"⚠️ Error getting camera_live frame: {e}")
+
+    # Fallback: Lấy từ Analyzer (test videos)
     frame_bytes = await asyncio.to_thread(state.analyzer.get_frame_road, road_name)
 
     if frame_bytes is None:

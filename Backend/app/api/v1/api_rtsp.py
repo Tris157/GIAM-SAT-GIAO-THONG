@@ -17,8 +17,14 @@ rtsp_detection_manager = RTSPDetectionManager()  # For stream with YOLO detectio
 @router.on_event("startup")
 async def startup_event():
     """Initialize RTSP streams on startup"""
-    # Add your RTSP camera with YOLO detection
-    rtsp_url = "rtsp://iocqnm:Quangnam$ioc2020@113.174.246.181:554/h264/ch1/main/av_stream"
+    # Get RTSP URL from config
+    from app.core.config import settings
+
+    if not settings.ENABLE_RTSP or not settings.RTSP_URL:
+        print("⚠️ RTSP not enabled or URL not configured")
+        return
+
+    rtsp_url = settings.RTSP_URL
 
     # Add stream WITH detection (camera_live)
     success = rtsp_detection_manager.add_stream("camera_live", rtsp_url)
