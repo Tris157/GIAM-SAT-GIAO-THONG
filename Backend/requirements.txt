@@ -24,6 +24,7 @@ scipy>=1.10.0
 
 # Utils
 requests==2.32.0
+psutil==5.9.8  # System monitoring (CPU, RAM, Disk)
 
 # Report Export - PDF & Excel
 reportlab==4.0.7

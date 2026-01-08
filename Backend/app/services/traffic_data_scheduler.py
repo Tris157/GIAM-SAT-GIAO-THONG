@@ -6,7 +6,7 @@ import logging
 from datetime import datetime
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.database import SessionLocal
+from app.db.base import AsyncSessionLocal
 from app.services.traffic_recording_service import traffic_recording_service
 
 logger = logging.getLogger(__name__)
@@ -66,7 +66,7 @@ class TrafficDataScheduler:
         if not self.analyzer or not self.analyzer.names:
             return
 
-        async with SessionLocal() as db:
+        async with AsyncSessionLocal() as db:
             try:
                 for road_name in self.analyzer.names:
                     try:

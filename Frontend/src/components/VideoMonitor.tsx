@@ -95,11 +95,11 @@ const VideoMonitor = ({
 
   if (loading) {
     return (
-      <Card>
+      <Card className="glass-card border border-border/20 shadow-2xl backdrop-blur-2xl bg-card/60">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
-            <Video className="h-4 w-4 sm:h-5 sm:w-5" />
-            <span className="text-sm sm:text-base">Giám Sát Video</span>
+            <Video className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />
+            <span className="text-sm sm:text-base text-gradient-cyan">Giám Sát Video</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -124,12 +124,12 @@ const VideoMonitor = ({
   }
 
   return (
-    <Card className="h-full">
-      <CardHeader className="px-3 sm:px-6">
+    <Card className="h-full glass-card glass-card-hover border border-border/20 shadow-2xl backdrop-blur-2xl bg-card/60">
+      <CardHeader className="px-3 sm:px-6 border-b border-border/20">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center space-x-2">
-            <Video className="h-4 w-4 sm:h-5 sm:w-5" />
-            <span className="text-sm sm:text-base">Camera Giao Thông</span>
+            <Video className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />
+            <span className="text-sm sm:text-base text-gradient-cyan">Camera Giao Thông</span>
           </CardTitle>
         </div>
       </CardHeader>
@@ -159,10 +159,10 @@ const VideoMonitor = ({
                   }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   whileHover={{ scale: 1.02 }}
-                  className={`relative overflow-hidden rounded-xl border-2 transition-all duration-300 cursor-pointer inline-block w-full max-w-sm mx-auto ${
+                  className={`relative overflow-hidden rounded-xl border-2 transition-all duration-300 cursor-pointer inline-block w-full max-w-sm mx-auto glass-card backdrop-blur-2xl bg-card/50 ${
                     isSelected
-                      ? "border-blue-500 shadow-lg shadow-blue-500/25"
-                      : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                      ? "border-accent shadow-lg shadow-accent/25 glow-effect"
+                      : "border-border/20 hover:border-accent/50"
                   }`}
                   onClick={() => {
                     setModalRoadName(roadName);
@@ -211,15 +211,15 @@ const VideoMonitor = ({
                       <div className="grid grid-cols-2 gap-2 sm:gap-4">
                         {/* Car Stats */}
                         <div className="flex items-center space-x-1 sm:space-x-2">
-                          <div className="p-1 sm:p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                            <Car className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600 dark:text-blue-400" />
+                          <div className="p-1 sm:p-2 bg-accent/10 rounded-lg">
+                            <Car className="h-3 w-3 sm:h-4 sm:w-4 text-accent" />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                            <p className="text-xs sm:text-sm text-muted-foreground">
                               Ô tô
                             </p>
-                            <p className="font-semibold text-xs sm:text-base">{data.count_car}</p>
-                            <p className="text-xs text-gray-500">
+                            <p className="font-semibold text-xs sm:text-base text-accent">{data.count_car}</p>
+                            <p className="text-xs text-muted-foreground">
                               {data.speed_car.toFixed(1)} km/h
                             </p>
                           </div>
@@ -227,15 +227,15 @@ const VideoMonitor = ({
 
                         {/* Motorbike Stats */}
                         <div className="flex items-center space-x-1 sm:space-x-2">
-                          <div className="p-1 sm:p-2 bg-green-100 dark:bg-green-900 rounded-lg">
-                            <Bike className="h-3 w-3 sm:h-4 sm:w-4 text-green-600 dark:text-green-400" />
+                          <div className="p-1 sm:p-2 bg-accent/10 rounded-lg">
+                            <Bike className="h-3 w-3 sm:h-4 sm:w-4 text-accent" />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                            <p className="text-xs sm:text-sm text-muted-foreground">
                               Xe máy
                             </p>
-                            <p className="font-semibold text-xs sm:text-base">{data.count_motor}</p>
-                            <p className="text-xs text-gray-500">
+                            <p className="font-semibold text-xs sm:text-base text-accent">{data.count_motor}</p>
+                            <p className="text-xs text-muted-foreground">
                               {data.speed_motor.toFixed(1)} km/h
                             </p>
                           </div>

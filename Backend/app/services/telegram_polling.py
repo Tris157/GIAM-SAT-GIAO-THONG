@@ -47,14 +47,18 @@ class TelegramPolling:
 
         while self.is_running:
             try:
-                # Get updates từ Telegram
-                response = requests.get(
-                    f"{self.api_base_url}/getUpdates",
-                    params={
-                        'offset': self.offset,
-                        'timeout': 30  # Long polling 30s
-                    },
-                    timeout=35
+                # Get updates từ Telegram - use thread executor to avoid blocking event loop
+                loop = asyncio.get_event_loop()
+                response = await loop.run_in_executor(
+                    None,
+                    lambda: requests.get(
+                        f"{self.api_base_url}/getUpdates",
+                        params={
+                            'offset': self.offset,
+                            'timeout': 30  # Long polling 30s
+                        },
+                        timeout=35
+                    )
                 )
 
                 if response.status_code == 200:

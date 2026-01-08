@@ -4,6 +4,8 @@ from app.api.v1 import state
 import asyncio
 from fastapi.responses import Response
 from fastapi import WebSocket, WebSocketDisconnect
+from app.api.v1.api_rtsp import rtsp_detection_manager
+from app.core.config import settings
 
 router = APIRouter()
 
@@ -19,7 +21,22 @@ async def get_road_names():
     """
     API endpoint trả về danh sách tên các tuyến đường (road_name) mà analyzer đang xử lý.
     """
-    return JSONResponse(content={"road_names": state.analyzer.names})
+    # Kiểm tra nếu analyzer chưa được khởi tạo
+    if state.analyzer is None:
+        return JSONResponse(content={
+            "road_names": [],
+            "message": "Analyzer đang được khởi tạo, vui lòng đợi..."
+        })
+
+    # Kiểm tra nếu analyzer.names là None hoặc empty
+    names = getattr(state.analyzer, 'names', None)
+    if names is None:
+        return JSONResponse(content={
+            "road_names": [],
+            "message": "Không có camera RTSP nào được cấu hình"
+        })
+
+    return JSONResponse(content={"road_names": names})
 
 @router.websocket("/ws/frames/{road_name}")
 async def websocket_frames(websocket: WebSocket, road_name: str):
@@ -59,9 +76,6 @@ async def get_info_road(road_name: str):
     # Nếu road_name là "camera_live", lấy từ RTSP stream
     if road_name == "camera_live":
         try:
-            from app.api.v1.api_rtsp import rtsp_detection_manager
-            from app.core.config import settings
-
             if settings.ENABLE_RTSP:
                 camera_stream = rtsp_detection_manager.get_stream("camera_live")
                 if camera_stream:
@@ -92,9 +106,6 @@ async def get_frame_road(road_name: str):
     # Nếu road_name là "camera_live", lấy từ RTSP stream
     if road_name == "camera_live":
         try:
-            from app.api.v1.api_rtsp import rtsp_detection_manager
-            from app.core.config import settings
-
             if settings.ENABLE_RTSP:
                 camera_stream = rtsp_detection_manager.get_stream("camera_live")
                 if camera_stream:

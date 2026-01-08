@@ -40,6 +40,8 @@ from sqlalchemy import select  # Query builder (select(), filter(), v.v.)
 # Dòng 12: Import database session getter
 from app.db.base import get_db
 # get_db(): Generator trả về AsyncSession, tự động close sau khi xong
+from app.utils.dependencies import get_current_admin_user, get_current_user
+from app.models.user import User
 
 # Dòng 13: Import model TrafficViolation
 from app.models.traffic_violation import TrafficViolation
@@ -127,7 +129,10 @@ class ViolationResponse(BaseModel):
 
 # Dòng 45-75: POST /violations/config - Cấu hình red light detection
 @router.post("/violations/config")
-async def configure_red_light_detection(config: RedLightConfig):
+async def configure_red_light_detection(
+    config: RedLightConfig,
+    current_admin: User = Depends(get_current_admin_user)
+):
     """
     Cấu hình phát hiện vượt đèn đỏ cho một camera
 
@@ -202,7 +207,11 @@ async def configure_red_light_detection(config: RedLightConfig):
 
 # Dòng 78-92: POST /violations/enable/{camera_name} - Bật/tắt detection
 @router.post("/violations/enable/{camera_name}")
-async def enable_red_light_detection(camera_name: str, enable: bool = True):
+async def enable_red_light_detection(
+    camera_name: str, 
+    enable: bool = True,
+    current_admin: User = Depends(get_current_admin_user)
+):
     """
     Bật hoặc tắt red light detection cho camera
 
@@ -354,6 +363,119 @@ async def get_violations(
     # Nhờ có response_model=List[ViolationResponse]
 
 
+# ============================================================================
+# ENDPOINT: DASHBOARD REALTIME STATS (MUST BE BEFORE {violation_id} ROUTE!)
+# ============================================================================
+
+@router.get("/violations/dashboard-stats")
+async def get_dashboard_stats(db: AsyncSession = Depends(get_db)):
+    """
+    Lấy thống kê nhanh cho Dashboard Realtime
+
+    ===== RESPONSE EXAMPLE =====
+    {
+      "today_violations": 15,
+      "yesterday_violations": 12,
+      "change_percent": 25.0,
+      "total_violations": 150,
+      "recent_violations": [...],
+      "by_vehicle_type": {...},
+      "peak_hour": 8
+    }
+    """
+    from sqlalchemy import func, extract
+    from datetime import datetime, timedelta
+
+    now = datetime.now()
+    today_start = datetime(now.year, now.month, now.day)
+    yesterday_start = today_start - timedelta(days=1)
+
+    # --- 1. ĐẾM VI PHẠM HÔM NAY ---
+    today_query = select(func.count(TrafficViolation.id)).where(
+        TrafficViolation.violated_at >= today_start
+    )
+    today_result = await db.execute(today_query)
+    today_count = today_result.scalar() or 0
+
+    # --- 2. ĐẾM VI PHẠM HÔM QUA ---
+    yesterday_query = select(func.count(TrafficViolation.id)).where(
+        TrafficViolation.violated_at >= yesterday_start,
+        TrafficViolation.violated_at < today_start
+    )
+    yesterday_result = await db.execute(yesterday_query)
+    yesterday_count = yesterday_result.scalar() or 0
+
+    # --- 3. TÍNH % THAY ĐỔI ---
+    if yesterday_count > 0:
+        change_percent = round(((today_count - yesterday_count) / yesterday_count) * 100, 1)
+    else:
+        change_percent = 100.0 if today_count > 0 else 0.0
+
+    # --- 4. TỔNG SỐ VI PHẠM ---
+    total_query = select(func.count(TrafficViolation.id))
+    total_result = await db.execute(total_query)
+    total_count = total_result.scalar() or 0
+
+    # --- 5. VI PHẠM GẦN NHẤT (5 gần nhất) ---
+    recent_query = select(TrafficViolation).order_by(
+        TrafficViolation.violated_at.desc()
+    ).limit(5)
+    recent_result = await db.execute(recent_query)
+    recent_violations = recent_result.scalars().all()
+
+    # --- 6. THỐNG KÊ THEO LOẠI XE (Hôm nay) ---
+    by_type_query = select(
+        TrafficViolation.vehicle_type,
+        func.count(TrafficViolation.id).label('count')
+    ).where(
+        TrafficViolation.violated_at >= today_start
+    ).group_by(TrafficViolation.vehicle_type)
+    by_type_result = await db.execute(by_type_query)
+    by_vehicle_type = {row.vehicle_type: row.count for row in by_type_result.all()}
+
+    # --- 7. GIỜ CAO ĐIỂM (Hôm nay) ---
+    if today_count > 0:
+        peak_query = select(
+            extract('hour', TrafficViolation.violated_at).label('hour'),
+            func.count(TrafficViolation.id).label('count')
+        ).where(
+            TrafficViolation.violated_at >= today_start
+        ).group_by('hour').order_by(func.count(TrafficViolation.id).desc()).limit(1)
+        peak_result = await db.execute(peak_query)
+        peak_row = peak_result.first()
+        peak_hour = int(peak_row.hour) if peak_row else None
+    else:
+        peak_hour = None
+
+    # --- 8. CHƯA XỬ LÝ ---
+    unprocessed_query = select(func.count(TrafficViolation.id)).where(
+        TrafficViolation.is_processed == False
+    )
+    unprocessed_result = await db.execute(unprocessed_query)
+    unprocessed_count = unprocessed_result.scalar() or 0
+
+    return {
+        "today_violations": today_count,
+        "yesterday_violations": yesterday_count,
+        "change_percent": change_percent,
+        "change_direction": "up" if change_percent > 0 else ("down" if change_percent < 0 else "same"),
+        "total_violations": total_count,
+        "unprocessed_count": unprocessed_count,
+        "by_vehicle_type": by_vehicle_type,
+        "peak_hour": peak_hour,
+        "recent_violations": [
+            {
+                "id": v.id,
+                "vehicle_type": v.vehicle_type,
+                "violated_at": v.violated_at.isoformat() if v.violated_at else None,
+                "camera_name": v.camera_name
+            }
+            for v in recent_violations
+        ],
+        "timestamp": now.isoformat()
+    }
+
+
 # Dòng 139-149: GET /violations/{violation_id} - Lấy 1 vi phạm theo ID
 @router.get("/violations/{violation_id}", response_model=ViolationResponse)
 async def get_violation(violation_id: int, db: AsyncSession = Depends(get_db)):
@@ -460,7 +582,11 @@ async def mark_violation_processed(
 
 # Dòng 180-196: DELETE /violations/{violation_id} - Xóa vi phạm
 @router.delete("/violations/{violation_id}")
-async def delete_violation(violation_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_violation(
+    violation_id: int, 
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin_user)
+):
     """
     Xóa vi phạm khỏi database
 
@@ -596,7 +722,9 @@ async def get_daily_summary(
 
 # Dòng 230-249: POST /violations/quick-setup/camera_live - Setup nhanh
 @router.post("/violations/quick-setup/camera_live")
-async def quick_setup_camera_live():
+async def quick_setup_camera_live(
+    current_admin: User = Depends(get_current_admin_user)
+):
     """
     Quick setup cho camera_live dựa trên ảnh camera của bạn
 
@@ -744,7 +872,6 @@ async def send_system_report_telegram(
 
         # PRIORITY 1: Lấy từ RTSP Camera (Real-time)
         try:
-            from app.api.v1.api_rtsp import rtsp_detection_manager
             from app.core.config import settings
 
             if settings.ENABLE_RTSP and rtsp_detection_manager:

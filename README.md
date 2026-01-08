@@ -161,7 +161,7 @@ JWT_ALGORITHM=HS256
 ```bash
 cd app
 pip install gdown
-gdown --folder https://drive.google.com/drive/folders/1gkac5U5jEs174p7V7VC3rCmgvO_cVwxH
+gdown --folder https://drive.google.com/drive/folders/1oq7XfILDfs5qPu6zaefa0TyxH_Q3EotG?usp=sharing
 cd ..
 ```
 
@@ -260,7 +260,7 @@ chmod +x start.sh
 ```bash
 cd Backend/app
 pip install gdown
-gdown --folder https://drive.google.com/drive/folders/1gkac5U5jEs174p7V7VC3rCmgvO_cVwxH
+gdown --folder https://drive.google.com/drive/folders/1oq7XfILDfs5qPu6zaefa0TyxH_Q3EotG?usp=sharing
 cd ../..
 ```
 
@@ -647,7 +647,7 @@ FileNotFoundError: [Errno 2] No such file or directory: 'video_test/Văn Phú.mp
 # Tải video từ Google Drive
 cd Backend/app
 pip install gdown
-gdown --folder https://drive.google.com/drive/folders/1gkac5U5jEs174p7V7VC3rCmgvO_cVwxH
+gdown --folder https://drive.google.com/drive/folders/1oq7XfILDfs5qPu6zaefa0TyxH_Q3EotG?usp=sharing
 
 # Kiểm tra files
 ls video_test/

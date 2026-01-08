@@ -117,8 +117,9 @@ class AnalyzeOnRoadForMultiprocessing():
                 meter_per_pixel=meter_per_pixel,
                 info_dict=info_dict,
                 frame_dict=frame_dict,
-                show= show, 
-                region= region
+                show= show,
+                region= region,
+                is_draw=True  # VẼ ROI VÀ THÔNG TIN LÊN VIDEO
             )
             analyzer.process_on_single_video()
         except Exception as e:

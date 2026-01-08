@@ -30,17 +30,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const loadUser = async () => {
       try {
-        if (authService.isAuthenticated()) {
-          const currentUser = await authService.getCurrentUser();
-          // Only update state if component is still mounted
-          if (isMounted) {
-            setUser(currentUser);
-          }
+        // If not authenticated (no token), stop loading immediately
+        if (!authService.isAuthenticated()) {
+          return;
+        }
+
+        // Create a timeout promise (15 seconds - Relaxed)
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Auth check timeout')), 15000)
+        );
+
+        // Race between fetching user and timeout
+        const currentUser = await Promise.race([
+          authService.getCurrentUser(),
+          timeoutPromise
+        ]);
+
+        if (isMounted) {
+          setUser(currentUser as User);
         }
       } catch (error) {
-        console.error('Failed to load user:', error);
+        console.warn('Auth check failed or timed out:', error);
         if (isMounted) {
           authService.logout();
+          setUser(null);
         }
       } finally {
         if (isMounted) {
@@ -60,8 +73,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (credentials: UserLogin) => {
     setIsLoading(true);
     try {
-      const response = await authService.login(credentials);
+      // Create a timeout promise (15 seconds for login)
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Login request timed out')), 15000)
+      );
+
+      // Race between login request and timeout
+      const response = await Promise.race([
+        authService.login(credentials),
+        timeoutPromise
+      ]) as any; // Cast to any or AuthResponse to avoid TS issues with race
+
       setUser(response.user);
+    } catch (error) {
+      console.error("Login failed:", error);
+      throw error; // Re-throw to let the UI handler know (e.g. show toast)
     } finally {
       setIsLoading(false);
     }

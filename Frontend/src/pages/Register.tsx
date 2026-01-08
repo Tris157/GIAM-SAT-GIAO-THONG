@@ -1,7 +1,7 @@
 /**
- * Register Page với UI/UX hiện đại
+ * Register Page - Vietnam Transport Theme
+ * - Đồng bộ với Login page
  * - Multi-step animations
- * - Email validation
  * - Password strength indicator
  */
 
@@ -13,6 +13,7 @@ import './Register.css';
 export default function Register() {
   const navigate = useNavigate();
   const { register } = useAuth();
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   const [formData, setFormData] = useState({
     username: '',
@@ -47,12 +48,10 @@ export default function Register() {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
 
-    // Update password strength
     if (name === 'password') {
       setPasswordStrength(calculatePasswordStrength(value));
     }
 
-    // Clear errors when user types
     setErrors(prev => ({ ...prev, [name]: '', general: '' }));
   };
 
@@ -66,40 +65,36 @@ export default function Register() {
     };
     let isValid = true;
 
-    // Username validation
     if (!formData.username.trim()) {
-      newErrors.username = 'Username is required';
+      newErrors.username = 'Vui lòng nhập tên đăng nhập';
       isValid = false;
     } else if (formData.username.length < 3) {
-      newErrors.username = 'Username must be at least 3 characters';
+      newErrors.username = 'Tên đăng nhập phải có ít nhất 3 ký tự';
       isValid = false;
     }
 
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
+      newErrors.email = 'Vui lòng nhập email';
       isValid = false;
     } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
+      newErrors.email = 'Email không hợp lệ';
       isValid = false;
     }
 
-    // Password validation
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = 'Vui lòng nhập mật khẩu';
       isValid = false;
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
       isValid = false;
     }
 
-    // Confirm password validation
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password';
+      newErrors.confirmPassword = 'Vui lòng xác nhận mật khẩu';
       isValid = false;
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = 'Mật khẩu không khớp';
       isValid = false;
     }
 
@@ -122,10 +117,11 @@ export default function Register() {
         full_name: formData.full_name || undefined,
       });
       navigate('/dashboard');
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Đăng ký thất bại. Vui lòng thử lại.';
       setErrors(prev => ({
         ...prev,
-        general: error.message || 'Registration failed. Please try again.',
+        general: errorMessage,
       }));
     } finally {
       setIsLoading(false);
@@ -133,38 +129,89 @@ export default function Register() {
   };
 
   const getStrengthColor = () => {
-    if (passwordStrength < 40) return '#f56565';
-    if (passwordStrength < 80) return '#ed8936';
-    return '#48bb78';
+    if (passwordStrength < 40) return '#EF4444';
+    if (passwordStrength < 80) return '#F59E0B';
+    return '#10B981';
   };
 
   const getStrengthText = () => {
-    if (passwordStrength < 40) return 'Weak';
-    if (passwordStrength < 80) return 'Medium';
-    return 'Strong';
+    if (passwordStrength < 40) return 'Yếu';
+    if (passwordStrength < 80) return 'Trung bình';
+    return 'Mạnh';
+  };
+
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
   };
 
   return (
-    <div className="login-container">
-      {/* Animated background circles */}
+    <div className={`login-container ${!isDarkMode ? 'light-mode' : ''}`}>
+      {/* Animated background orbs */}
       <div className="bg-circle circle-1"></div>
       <div className="bg-circle circle-2"></div>
       <div className="bg-circle circle-3"></div>
+
+      {/* Floating glowing particles */}
+      <div className="particles-container">
+        {[...Array(15)].map((_, i) => (
+          <div
+            key={`particle-${i}`}
+            className="glow-particle"
+            style={{
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 8}s`,
+              animationDuration: `${8 + Math.random() * 12}s`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Light rays */}
+      <div className="light-rays">
+        <div className="ray ray-1"></div>
+        <div className="ray ray-2"></div>
+        <div className="ray ray-3"></div>
+      </div>
+
+      {/* Twinkling stars */}
+      <div className="stars-container">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={`star-${i}`}
+            className="star"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 5}s`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Theme toggle button */}
+      <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
+        {isDarkMode ? (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="5" />
+            <path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+          </svg>
+        ) : (
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+          </svg>
+        )}
+      </button>
 
       {/* Register card */}
       <div className="login-card">
         <div className="login-header">
           <div className="logo-container">
             <div className="logo-icon">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <img src="/logo.png" alt="Logo" />
             </div>
           </div>
-          <h1 className="login-title">Create Account</h1>
-          <p className="login-subtitle">Join Smart Traffic Monitoring System</p>
+          <h1 className="login-title">Đăng ký tài khoản</h1>
+          <p className="login-subtitle">Hệ thống giám sát giao thông thông minh</p>
         </div>
 
         <form className="login-form" onSubmit={handleSubmit}>
@@ -181,7 +228,7 @@ export default function Register() {
           {/* Full Name */}
           <div className="form-group">
             <label className="form-label" htmlFor="full_name">
-              Full Name (Optional)
+              Họ và tên (Tùy chọn)
             </label>
             <div className="input-wrapper">
               <svg className="input-icon" viewBox="0 0 20 20" fill="currentColor">
@@ -192,7 +239,7 @@ export default function Register() {
                 id="full_name"
                 name="full_name"
                 className="form-input"
-                placeholder="Enter your full name"
+                placeholder="Nhập họ và tên của bạn"
                 value={formData.full_name}
                 onChange={handleChange}
               />
@@ -202,7 +249,7 @@ export default function Register() {
           {/* Username */}
           <div className="form-group">
             <label className="form-label" htmlFor="username">
-              Username <span className="required">*</span>
+              Tên đăng nhập <span className="required">*</span>
             </label>
             <div className={`input-wrapper ${errors.username ? 'has-error' : ''}`}>
               <svg className="input-icon" viewBox="0 0 20 20" fill="currentColor">
@@ -213,7 +260,7 @@ export default function Register() {
                 id="username"
                 name="username"
                 className="form-input"
-                placeholder="Choose a username"
+                placeholder="Chọn tên đăng nhập"
                 value={formData.username}
                 onChange={handleChange}
                 autoComplete="username"
@@ -237,7 +284,7 @@ export default function Register() {
                 id="email"
                 name="email"
                 className="form-input"
-                placeholder="Enter your email"
+                placeholder="Nhập địa chỉ email"
                 value={formData.email}
                 onChange={handleChange}
                 autoComplete="email"
@@ -249,7 +296,7 @@ export default function Register() {
           {/* Password */}
           <div className="form-group">
             <label className="form-label" htmlFor="password">
-              Password <span className="required">*</span>
+              Mật khẩu <span className="required">*</span>
             </label>
             <div className={`input-wrapper ${errors.password ? 'has-error' : ''}`}>
               <svg className="input-icon" viewBox="0 0 20 20" fill="currentColor">
@@ -260,7 +307,7 @@ export default function Register() {
                 id="password"
                 name="password"
                 className="form-input"
-                placeholder="Create a password"
+                placeholder="Tạo mật khẩu"
                 value={formData.password}
                 onChange={handleChange}
                 autoComplete="new-password"
@@ -290,7 +337,7 @@ export default function Register() {
           {/* Confirm Password */}
           <div className="form-group">
             <label className="form-label" htmlFor="confirmPassword">
-              Confirm Password <span className="required">*</span>
+              Xác nhận mật khẩu <span className="required">*</span>
             </label>
             <div className={`input-wrapper ${errors.confirmPassword ? 'has-error' : ''}`}>
               <svg className="input-icon" viewBox="0 0 20 20" fill="currentColor">
@@ -301,7 +348,7 @@ export default function Register() {
                 id="confirmPassword"
                 name="confirmPassword"
                 className="form-input"
-                placeholder="Confirm your password"
+                placeholder="Nhập lại mật khẩu"
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 autoComplete="new-password"
@@ -319,11 +366,11 @@ export default function Register() {
             {isLoading ? (
               <>
                 <span className="spinner"></span>
-                Creating Account...
+                Đang đăng ký...
               </>
             ) : (
               <>
-                Create Account
+                Đăng ký
                 <svg className="arrow-icon" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
                 </svg>
@@ -335,9 +382,9 @@ export default function Register() {
         {/* Login link */}
         <div className="login-footer">
           <p className="register-text">
-            Already have an account?{' '}
+            Đã có tài khoản?{' '}
             <Link to="/login" className="register-link">
-              Sign in
+              Đăng nhập
             </Link>
           </p>
         </div>

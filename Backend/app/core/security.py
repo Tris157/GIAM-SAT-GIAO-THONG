@@ -1,6 +1,8 @@
 from passlib.context import CryptContext
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Using rounds=10 for faster performance (default is 12)
+# rounds=10 gives 2^10=1024 iterations (still secure, but 4x faster than default)
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=10)
 
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)

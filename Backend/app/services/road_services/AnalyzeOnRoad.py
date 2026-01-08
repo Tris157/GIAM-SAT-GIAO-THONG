@@ -75,7 +75,7 @@ if __name__ == "__main__":
     from multiprocessing import Manager
     manager = Manager()
   
-    path_video = "./video_test/Đường Láng.mp4"
+    path_video = "./video_test/CAU RONG.mp4"
     meter_per_pixel = 0.04
     info_dict = manager.dict({"count_car": 0,
                              "count_motor": 0,

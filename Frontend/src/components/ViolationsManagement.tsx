@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { endpoints } from "../config";
+import { useAuth } from "../contexts/AuthContext";
 
 type Violation = {
   id: number;
@@ -52,6 +53,7 @@ const ViolationsManagement = () => {
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<'all' | 'processed' | 'unprocessed'>('all');
   const [selectedViolation, setSelectedViolation] = useState<Violation | null>(null);
+  const { isAdmin } = useAuth();
 
   // Fetch violations
   const fetchViolations = async () => {
@@ -71,7 +73,9 @@ const ViolationsManagement = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setViolations(data.violations || []);
+        // Backend trả về array trực tiếp, không phải object
+        const violationsData = Array.isArray(data) ? data : (data.violations || []);
+        setViolations(violationsData);
       }
     } catch (error) {
       console.error('Error fetching violations:', error);
@@ -105,16 +109,21 @@ const ViolationsManagement = () => {
         const unprocessedData = await unprocessedResponse.json();
         const processedData = await processedResponse.json();
 
+        // Backend trả về array trực tiếp
+        const allViolations = Array.isArray(allData) ? allData : (allData.violations || []);
+        const unprocessedViolations = Array.isArray(unprocessedData) ? unprocessedData : (unprocessedData.violations || []);
+        const processedViolations = Array.isArray(processedData) ? processedData : (processedData.violations || []);
+
         // Calculate today's violations
         const today = new Date().toISOString().split('T')[0];
-        const todayViolations = allData.violations?.filter((v: Violation) =>
+        const todayViolations = allViolations.filter((v: Violation) =>
           v.violated_at.startsWith(today)
-        ).length || 0;
+        ).length;
 
         setStats({
-          total: allData.violations?.length || 0,
-          unprocessed: unprocessedData.violations?.length || 0,
-          processed: processedData.violations?.length || 0,
+          total: allViolations.length,
+          unprocessed: unprocessedViolations.length,
+          processed: processedViolations.length,
           today: todayViolations,
         });
       }
@@ -253,15 +262,15 @@ const ViolationsManagement = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <Card className="glass border-white/10">
+          <Card className="glass-card glass-card-hover border border-border/20 shadow-2xl backdrop-blur-2xl bg-card/60">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Tổng Vi Phạm</p>
-                  <p className="text-3xl font-bold text-purple-400">{stats.total}</p>
+                  <p className="text-sm text-muted-foreground">Tổng Vi Phạm</p>
+                  <p className="text-3xl font-bold text-accent">{stats.total}</p>
                 </div>
-                <div className="p-3 bg-purple-500/20 rounded-lg">
-                  <AlertTriangle className="h-6 w-6 text-purple-400" />
+                <div className="p-3 bg-accent/20 rounded-lg">
+                  <AlertTriangle className="h-6 w-6 text-accent" />
                 </div>
               </div>
             </CardContent>
@@ -273,11 +282,11 @@ const ViolationsManagement = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Card className="glass border-white/10">
+          <Card className="glass-card glass-card-hover border border-border/20 shadow-2xl backdrop-blur-2xl bg-card/60">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Chưa Xử Lý</p>
+                  <p className="text-sm text-muted-foreground">Chưa Xử Lý</p>
                   <p className="text-3xl font-bold text-red-400">{stats.unprocessed}</p>
                 </div>
                 <div className="p-3 bg-red-500/20 rounded-lg">
@@ -293,11 +302,11 @@ const ViolationsManagement = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="glass border-white/10">
+          <Card className="glass-card glass-card-hover border border-border/20 shadow-2xl backdrop-blur-2xl bg-card/60">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Đã Xử Lý</p>
+                  <p className="text-sm text-muted-foreground">Đã Xử Lý</p>
                   <p className="text-3xl font-bold text-green-400">{stats.processed}</p>
                 </div>
                 <div className="p-3 bg-green-500/20 rounded-lg">
@@ -313,15 +322,15 @@ const ViolationsManagement = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <Card className="glass border-white/10">
+          <Card className="glass-card glass-card-hover border border-border/20 shadow-2xl backdrop-blur-2xl bg-card/60">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Hôm Nay</p>
-                  <p className="text-3xl font-bold text-blue-400">{stats.today}</p>
+                  <p className="text-sm text-muted-foreground">Hôm Nay</p>
+                  <p className="text-3xl font-bold text-accent">{stats.today}</p>
                 </div>
-                <div className="p-3 bg-blue-500/20 rounded-lg">
-                  <AlertTriangle className="h-6 w-6 text-blue-400" />
+                <div className="p-3 bg-accent/20 rounded-lg">
+                  <AlertTriangle className="h-6 w-6 text-accent" />
                 </div>
               </div>
             </CardContent>
@@ -330,58 +339,60 @@ const ViolationsManagement = () => {
       </div>
 
       {/* Action Buttons */}
-      <Card className="glass border-white/10">
-        <CardHeader>
+      <Card className="glass-card glass-card-hover border border-border/20 shadow-2xl backdrop-blur-2xl bg-card/60">
+        <CardHeader className="border-b border-border/20">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-white">Quản Lý Vi Phạm</CardTitle>
+            <CardTitle className="text-gradient-cyan">Quản Lý Vi Phạm</CardTitle>
             <div className="flex gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={testTelegram}
-                className="glass border-white/20 bg-blue-500/10 hover:bg-blue-500/20"
+                className="glass-card border-border/30 hover:bg-accent/10 hover:border-accent/40 transition-all duration-300"
               >
-                <Send className="h-4 w-4 mr-2" />
+                <Send className="h-4 w-4 mr-2 text-accent" />
                 Test Telegram
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => sendTelegramReport('today')}
-                className="glass border-white/20 bg-green-500/10 hover:bg-green-500/20"
+                className="glass-card border-border/30 hover:bg-accent/10 hover:border-accent/40 transition-all duration-300"
               >
-                <Send className="h-4 w-4 mr-2" />
+                <Send className="h-4 w-4 mr-2 text-accent" />
                 Gửi Báo Cáo
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={quickSetupDetection}
-                className="glass border-white/20"
-              >
-                <SettingsIcon className="h-4 w-4 mr-2" />
-                Cấu Hình
-              </Button>
+              {isAdmin && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={quickSetupDetection}
+                  className="glass-card border-border/30 hover:bg-accent/10 hover:border-accent/40 transition-all duration-300"
+                >
+                  <SettingsIcon className="h-4 w-4 mr-2 text-accent" />
+                  Cấu Hình
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => { fetchViolations(); fetchStats(); }}
-                className="glass border-white/20"
+                className="glass-card border-border/30 hover:bg-accent/10 hover:border-accent/40 transition-all duration-300"
               >
-                <RefreshCw className="h-4 w-4 mr-2" />
+                <RefreshCw className="h-4 w-4 mr-2 text-accent" />
                 Làm Mới
               </Button>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           {/* Filter Buttons */}
           <div className="flex gap-2 mb-4">
             <Button
               variant={filter === 'all' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setFilter('all')}
-              className={filter === 'all' ? 'bg-purple-600' : 'glass border-white/20'}
+              className={filter === 'all' ? 'bg-gradient-navy-cyan text-white shadow-lg glow-effect' : 'glass-card border-border/30 hover:bg-accent/10 hover:border-accent/40 transition-all'}
             >
               <Filter className="h-4 w-4 mr-2" />
               Tất Cả ({stats.total})
@@ -390,7 +401,7 @@ const ViolationsManagement = () => {
               variant={filter === 'unprocessed' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setFilter('unprocessed')}
-              className={filter === 'unprocessed' ? 'bg-red-600' : 'glass border-white/20'}
+              className={filter === 'unprocessed' ? 'bg-gradient-navy-cyan text-white shadow-lg glow-effect' : 'glass-card border-border/30 hover:bg-accent/10 hover:border-accent/40 transition-all'}
             >
               <Clock className="h-4 w-4 mr-2" />
               Chưa Xử Lý ({stats.unprocessed})
@@ -399,7 +410,7 @@ const ViolationsManagement = () => {
               variant={filter === 'processed' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setFilter('processed')}
-              className={filter === 'processed' ? 'bg-green-600' : 'glass border-white/20'}
+              className={filter === 'processed' ? 'bg-gradient-navy-cyan text-white shadow-lg glow-effect' : 'glass-card border-border/30 hover:bg-accent/10 hover:border-accent/40 transition-all'}
             >
               <CheckCircle className="h-4 w-4 mr-2" />
               Đã Xử Lý ({stats.processed})
@@ -409,13 +420,13 @@ const ViolationsManagement = () => {
           {/* Violations List */}
           <div className="space-y-3 max-h-[600px] overflow-y-auto">
             {loading ? (
-              <div className="text-center py-8 text-gray-400">
-                <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2" />
+              <div className="text-center py-8 text-muted-foreground">
+                <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2 text-accent" />
                 <p>Đang tải...</p>
               </div>
             ) : violations.length === 0 ? (
-              <div className="text-center py-8 text-gray-400">
-                <AlertTriangle className="h-12 w-12 mx-auto mb-2 opacity-50" />
+              <div className="text-center py-8 text-muted-foreground">
+                <AlertTriangle className="h-12 w-12 mx-auto mb-2 opacity-50 text-accent" />
                 <p>Không có vi phạm</p>
               </div>
             ) : (
@@ -424,7 +435,7 @@ const ViolationsManagement = () => {
                   key={violation.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className="glass border-white/10 rounded-lg p-4 hover:bg-white/5 transition-colors"
+                  className="glass-card border border-border/20 rounded-lg p-4 hover:border-accent/50 hover:bg-card/80 transition-all duration-300 backdrop-blur-xl bg-card/40"
                 >
                   <div className="flex gap-4">
                     {/* Thumbnail */}
@@ -432,7 +443,7 @@ const ViolationsManagement = () => {
                       <img
                         src={`${endpoints.base}/${violation.image_path}`}
                         alt="Violation"
-                        className="w-32 h-24 object-cover rounded-lg border border-white/20"
+                        className="w-32 h-24 object-cover rounded-lg border border-border/20"
                         onClick={() => setSelectedViolation(violation)}
                         style={{ cursor: 'pointer' }}
                       />
@@ -443,15 +454,16 @@ const ViolationsManagement = () => {
                       <div className="flex items-start justify-between">
                         <div>
                           <div className="flex items-center gap-2">
-                            <h4 className="font-semibold text-white">Vi phạm #{violation.id}</h4>
-                            <Badge variant={violation.is_processed ? "success" : "destructive"}>
+                            <h4 className="font-semibold text-foreground">Vi phạm #{violation.id}</h4>
+                            <Badge variant={violation.is_processed ? "outline" : "destructive"}
+                              className={violation.is_processed ? "border-green-500 text-green-500 bg-green-500/10" : ""}>
                               {violation.is_processed ? 'Đã xử lý' : 'Chưa xử lý'}
                             </Badge>
-                            <Badge variant="outline" className="border-purple-400 text-purple-400">
+                            <Badge variant="outline" className="border-accent text-accent">
                               {violation.camera_name}
                             </Badge>
                           </div>
-                          <p className="text-sm text-gray-400 mt-1">
+                          <p className="text-sm text-muted-foreground mt-1">
                             {new Date(violation.violated_at).toLocaleString('vi-VN')}
                           </p>
                         </div>
@@ -460,19 +472,22 @@ const ViolationsManagement = () => {
                       <div className="flex items-center gap-4 text-sm">
                         <div className="flex items-center gap-1">
                           {violation.vehicle_type === 'car' ? (
-                            <Car className="h-4 w-4 text-blue-400" />
+                            <Car className="h-4 w-4 text-accent" />
                           ) : (
-                            <Bike className="h-4 w-4 text-green-400" />
+                            <Bike className="h-4 w-4 text-accent" />
                           )}
-                          <span className="text-gray-300">{violation.vehicle_type === 'car' ? 'Ô tô' : 'Xe máy'}</span>
+                          <span className="text-foreground">{violation.vehicle_type === 'car' ? 'Ô tô' : 'Xe máy'}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <AlertTriangle className="h-4 w-4 text-red-400" />
-                          <span className="text-gray-300">Vượt đèn đỏ</span>
+                          <span className="text-foreground">
+                            {violation.violation_type === 'speeding' ? 'Quá tốc độ' :
+                              violation.violation_type === 'wrong_lane' ? 'Sai làn' : 'Vượt đèn đỏ'}
+                          </span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <span className="text-gray-400">Độ chính xác:</span>
-                          <span className="text-yellow-400">{(violation.confidence * 100).toFixed(1)}%</span>
+                          <span className="text-muted-foreground">Độ chính xác:</span>
+                          <span className="text-accent">{(violation.confidence * 100).toFixed(1)}%</span>
                         </div>
                       </div>
 
@@ -481,9 +496,9 @@ const ViolationsManagement = () => {
                           size="sm"
                           variant="outline"
                           onClick={() => setSelectedViolation(violation)}
-                          className="glass border-white/20"
+                          className="glass-card border-border/30 hover:bg-accent/10 hover:border-accent/40 transition-all"
                         >
-                          <Eye className="h-4 w-4 mr-1" />
+                          <Eye className="h-4 w-4 mr-1 text-accent" />
                           Xem Chi Tiết
                         </Button>
                         {!violation.is_processed && (
@@ -491,21 +506,23 @@ const ViolationsManagement = () => {
                             size="sm"
                             variant="outline"
                             onClick={() => markAsProcessed(violation.id, 'Đã xử lý vi phạm')}
-                            className="glass border-green-500/40 text-green-400"
+                            className="glass-card border-green-500/40 text-green-400 hover:bg-green-500/10 transition-all"
                           >
                             <CheckCircle className="h-4 w-4 mr-1" />
                             Đánh Dấu Xử Lý
                           </Button>
                         )}
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => deleteViolation(violation.id)}
-                          className="glass border-red-500/40 text-red-400"
-                        >
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          Xóa
-                        </Button>
+                        {isAdmin && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => deleteViolation(violation.id)}
+                            className="glass-card border-red-500/40 text-red-400 hover:bg-red-500/10 transition-all"
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            Xóa
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -519,20 +536,20 @@ const ViolationsManagement = () => {
       {/* Modal for viewing full image */}
       {selectedViolation && (
         <div
-          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm"
           onClick={() => setSelectedViolation(null)}
         >
           <div
-            className="glass border-white/20 rounded-2xl max-w-4xl w-full overflow-hidden"
+            className="glass-card border border-border/20 rounded-2xl max-w-4xl w-full overflow-hidden shadow-2xl backdrop-blur-2xl bg-card/90"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-4 border-b border-white/10 flex justify-between items-center">
-              <h3 className="text-xl font-bold text-white">Vi Phạm #{selectedViolation.id}</h3>
+            <div className="p-4 border-b border-border/20 flex justify-between items-center">
+              <h3 className="text-xl font-bold text-gradient-cyan">Vi Phạm #{selectedViolation.id}</h3>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setSelectedViolation(null)}
-                className="glass border-white/20"
+                className="glass-card border-border/30 hover:bg-accent/10 hover:border-accent/40 transition-all"
               >
                 Đóng
               </Button>
@@ -541,38 +558,38 @@ const ViolationsManagement = () => {
               <img
                 src={`${endpoints.base}/${selectedViolation.image_path}`}
                 alt="Violation Detail"
-                className="w-full rounded-lg border border-white/20"
+                className="w-full rounded-lg border border-border/20"
               />
               <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-gray-400">Camera:</p>
-                  <p className="text-white font-semibold">{selectedViolation.camera_name}</p>
+                  <p className="text-muted-foreground">Camera:</p>
+                  <p className="text-foreground font-semibold">{selectedViolation.camera_name}</p>
                 </div>
                 <div>
-                  <p className="text-gray-400">Loại xe:</p>
-                  <p className="text-white font-semibold">
+                  <p className="text-muted-foreground">Loại xe:</p>
+                  <p className="text-foreground font-semibold">
                     {selectedViolation.vehicle_type === 'car' ? 'Ô tô' : 'Xe máy'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-400">Thời gian:</p>
-                  <p className="text-white font-semibold">
+                  <p className="text-muted-foreground">Thời gian:</p>
+                  <p className="text-foreground font-semibold">
                     {new Date(selectedViolation.violated_at).toLocaleString('vi-VN')}
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-400">Trạng thái đèn:</p>
+                  <p className="text-muted-foreground">Trạng thái đèn:</p>
                   <p className="text-red-400 font-semibold">{selectedViolation.traffic_light_status.toUpperCase()}</p>
                 </div>
                 <div>
-                  <p className="text-gray-400">Vị trí:</p>
-                  <p className="text-white font-semibold">
+                  <p className="text-muted-foreground">Vị trí:</p>
+                  <p className="text-foreground font-semibold">
                     X: {selectedViolation.position_x.toFixed(0)}, Y: {selectedViolation.position_y.toFixed(0)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-400">Độ chính xác:</p>
-                  <p className="text-yellow-400 font-semibold">
+                  <p className="text-muted-foreground">Độ chính xác:</p>
+                  <p className="text-accent font-semibold">
                     {(selectedViolation.confidence * 100).toFixed(2)}%
                   </p>
                 </div>

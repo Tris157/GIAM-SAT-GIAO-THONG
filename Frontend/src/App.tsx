@@ -4,7 +4,7 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ErrorBoundary from './components/ErrorBoundary';
-import ProtectedRoute from './components/ProtectedRoute'; // Not lazy - needed immediately
+import ProtectedRoute from './components/ProtectedRoute';
 import "./App.css";
 
 // Lazy load heavy components for better initial load time
@@ -13,22 +13,23 @@ const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Violations = lazy(() => import('./pages/Violations'));
+const RedLightSetup = lazy(() => import('./components/RedLightSetup'));
 
-// Loading component
+// Loading component - Vietnam Transport Theme
 const PageLoader = () => (
   <div style={{
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: '100vh',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    color: 'white',
+    background: 'linear-gradient(135deg, #030712 0%, #0A1628 50%, #0A2463 100%)',
+    color: '#06B6D4',
     fontSize: '1.5rem',
     flexDirection: 'column',
     gap: '20px'
   }}>
-    <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-white"></div>
-    <div>Loading...</div>
+    <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-cyan-400"></div>
+    <div style={{ color: '#f8fafc' }}>Đang tải...</div>
   </div>
 );
 
@@ -43,11 +44,11 @@ function AuthenticatedRoute({ children }: { children: React.ReactNode }) {
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        color: 'white',
+        background: 'linear-gradient(135deg, #030712 0%, #0A1628 50%, #0A2463 100%)',
+        color: '#f8fafc',
         fontSize: '1.5rem',
       }}>
-        Loading...
+        Đang tải...
       </div>
     );
   }
@@ -59,54 +60,98 @@ function AuthenticatedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-// Main dashboard wrapper with theme
+// Main dashboard wrapper with theme - Vietnam Transport Theme
 function DashboardWrapper() {
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-      <div className="min-h-screen relative overflow-hidden rainbow-gradient">
-        {/* Animated background elements */}
+      <div className="min-h-screen relative overflow-hidden" style={{
+        background: 'linear-gradient(135deg, #030712 0%, #0A0E1A 50%, #030712 100%)'
+      }}>
+        {/* Animated background elements - Cyan/Navy Theme */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {/* 3D Floating orbs với gradient */}
-          <div className="absolute top-0 -left-4 w-96 h-96 rounded-full animate-blob animation-delay-0 neon-glow"
+          {/* Cyan Orb - Top Left */}
+          <div className="absolute top-0 -left-4 w-96 h-96 rounded-full animate-blob animation-delay-0"
             style={{
-              background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.2))',
-              backdropFilter: 'blur(40px)',
-              boxShadow: '0 0 100px rgba(102, 126, 234, 0.4), inset 0 0 60px rgba(255, 255, 255, 0.1)'
+              background: 'radial-gradient(circle, rgba(6, 182, 212, 0.25) 0%, rgba(14, 116, 144, 0.1) 50%, transparent 100%)',
+              filter: 'blur(80px)',
             }}
           ></div>
-          <div className="absolute top-0 -right-4 w-[500px] h-[500px] rounded-full animate-blob animation-delay-2000 neon-glow"
+
+          {/* Navy Orb - Top Right */}
+          <div className="absolute top-0 -right-4 w-[500px] h-[500px] rounded-full animate-blob animation-delay-2000"
             style={{
-              background: 'linear-gradient(135deg, rgba(240, 147, 251, 0.3), rgba(245, 87, 108, 0.2))',
-              backdropFilter: 'blur(40px)',
-              boxShadow: '0 0 100px rgba(240, 147, 251, 0.4), inset 0 0 60px rgba(255, 255, 255, 0.1)'
+              background: 'radial-gradient(circle, rgba(30, 58, 138, 0.25) 0%, rgba(10, 36, 99, 0.15) 50%, transparent 100%)',
+              filter: 'blur(80px)',
             }}
           ></div>
-          <div className="absolute -bottom-8 left-20 w-80 h-80 rounded-full animate-blob animation-delay-4000 neon-glow"
+
+          {/* Cyan Orb - Bottom Left */}
+          <div className="absolute -bottom-8 left-20 w-80 h-80 rounded-full animate-blob animation-delay-4000"
             style={{
-              background: 'linear-gradient(135deg, rgba(79, 172, 254, 0.3), rgba(0, 242, 254, 0.2))',
-              backdropFilter: 'blur(40px)',
-              boxShadow: '0 0 100px rgba(79, 172, 254, 0.4), inset 0 0 60px rgba(255, 255, 255, 0.1)'
+              background: 'radial-gradient(circle, rgba(6, 182, 212, 0.2) 0%, rgba(8, 145, 178, 0.1) 50%, transparent 100%)',
+              filter: 'blur(80px)',
             }}
           ></div>
-          <div className="absolute bottom-20 right-40 w-64 h-64 rounded-full animate-blob animation-delay-6000 neon-glow"
+
+          {/* Tech Blue Orb - Bottom Right */}
+          <div className="absolute bottom-20 right-40 w-64 h-64 rounded-full animate-blob animation-delay-6000"
             style={{
-              background: 'linear-gradient(135deg, rgba(67, 233, 123, 0.3), rgba(56, 249, 215, 0.2))',
-              backdropFilter: 'blur(40px)',
-              boxShadow: '0 0 100px rgba(67, 233, 123, 0.4), inset 0 0 60px rgba(255, 255, 255, 0.1)'
+              background: 'radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.1) 50%, transparent 100%)',
+              filter: 'blur(80px)',
             }}
           ></div>
+
+          {/* Floating Glow Particles */}
+          <div className="particles-container">
+            {[...Array(25)].map((_, i) => (
+              <div
+                key={`glow-${i}`}
+                className="glow-particle"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  animationDelay: `${Math.random() * 8}s`,
+                  animationDuration: `${10 + Math.random() * 15}s`,
+                }}
+              />
+            ))}
+          </div>
+
+          {/* Light Rays */}
+          <div className="light-rays">
+            <div className="ray ray-1"></div>
+            <div className="ray ray-2"></div>
+            <div className="ray ray-3"></div>
+            <div className="ray ray-4"></div>
+          </div>
+
+          {/* Twinkling Stars */}
+          <div className="stars-container">
+            {[...Array(30)].map((_, i) => (
+              <div
+                key={`star-${i}`}
+                className="star"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                  animationDelay: `${Math.random() * 5}s`,
+                }}
+              />
+            ))}
+          </div>
+
+          {/* Floating Tech Rings */}
+          <div className="tech-ring ring-1"></div>
+          <div className="tech-ring ring-2"></div>
+          <div className="tech-ring ring-3"></div>
 
           {/* Grid pattern */}
-          <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
+          <div className="absolute inset-0" style={{
+            backgroundImage: 'linear-gradient(rgba(6, 182, 212, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(6, 182, 212, 0.03) 1px, transparent 1px)',
+            backgroundSize: '60px 60px'
+          }}></div>
 
-          {/* Dots pattern overlay */}
-          <div className="absolute inset-0 bg-dots-pattern opacity-5"></div>
-
-          {/* Scanline effect */}
-          <div className="absolute inset-0 bg-scanline opacity-5"></div>
-
-          {/* Horizontal scan line */}
-          <div className="scan-line" style={{ top: '30%' }}></div>
+          {/* Moving scan line */}
+          <div className="scan-line-horizontal"></div>
         </div>
 
         {/* Main content */}
@@ -127,60 +172,70 @@ function App() {
         <AuthProvider>
           <Suspense fallback={<PageLoader />}>
             <Routes>
-            {/* Public routes - redirect to dashboard if already logged in */}
-            <Route
-              path="/login"
-              element={
-                <AuthenticatedRoute>
-                  <Login />
-                </AuthenticatedRoute>
-              }
-            />
-            <Route
-              path="/register"
-              element={
-                <AuthenticatedRoute>
-                  <Register />
-                </AuthenticatedRoute>
-              }
-            />
+              {/* Public routes - redirect to dashboard if already logged in */}
+              <Route
+                path="/login"
+                element={
+                  <AuthenticatedRoute>
+                    <Login />
+                  </AuthenticatedRoute>
+                }
+              />
+              <Route
+                path="/register"
+                element={
+                  <AuthenticatedRoute>
+                    <Register />
+                  </AuthenticatedRoute>
+                }
+              />
 
-            {/* Protected routes - require authentication */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
+              {/* Protected routes - require authentication */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Violations management page - protected */}
-            <Route
-              path="/violations"
-              element={
-                <ProtectedRoute>
-                  <Violations />
-                </ProtectedRoute>
-              }
-            />
+              {/* Violations management page - protected */}
+              <Route
+                path="/violations"
+                element={
+                  <ProtectedRoute>
+                    <Violations />
+                  </ProtectedRoute>
+                }
+              />
 
-          {/* Main traffic dashboard - protected */}
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <DashboardWrapper />
-              </ProtectedRoute>
-            }
-          />
+              {/* Red Light Setup page - protected */}
+              <Route
+                path="/red-light-setup"
+                element={
+                  <ProtectedRoute>
+                    <RedLightSetup />
+                  </ProtectedRoute>
+                }
+              />
 
-          {/* Catch all - redirect to login */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
-        </Suspense>
-      </AuthProvider>
-    </Router>
+              {/* Main traffic dashboard - protected */}
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <DashboardWrapper />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Catch all - redirect to login */}
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+          </Suspense>
+        </AuthProvider>
+      </Router>
     </ErrorBoundary>
   );
 }

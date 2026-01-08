@@ -118,8 +118,14 @@ export const endpoints = {
   // ["camera_live", "camera_highway", "camera_intersection_1"]
 
   // Dòng 19-20: WebSocket - Frames stream
-  framesWs: (roadName: string) =>
-    `${API_WS_BASE}/ws/frames/${encodeURIComponent(roadName)}`,
+  framesWs: (roadName: string) => {
+    // Nếu là camera_live (RTSP), dùng endpoint RTSP
+    if (roadName === "camera_live") {
+      return `${API_WS_BASE}/ws/rtsp/${encodeURIComponent(roadName)}`;
+    }
+    // Các video test khác dùng endpoint frames thông thường
+    return `${API_WS_BASE}/ws/frames/${encodeURIComponent(roadName)}`;
+  },
   // framesWs: Function trả về WebSocket URL
   //
   // PARAMETERS:

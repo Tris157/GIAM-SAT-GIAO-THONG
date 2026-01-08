@@ -41,6 +41,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
 import { vi } from "date-fns/locale";
+import { endpoints } from "../config";
 
 interface VehicleData {
   count_car: number;
@@ -263,12 +264,12 @@ const TrafficReports = ({ trafficData, allowedRoads }: TrafficReportsProps) => {
         period === "day"
           ? subDays(new Date(), 1)
           : period === "week"
-          ? subDays(new Date(), 7)
-          : subDays(new Date(), 30),
+            ? subDays(new Date(), 7)
+            : subDays(new Date(), 30),
         "yyyy-MM-dd"
       );
 
-      const response = await fetch("http://localhost:8000/api/v1/reports/export/pdf", {
+      const response = await fetch(`${endpoints.base}/api/v1/reports/export/pdf`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -303,12 +304,12 @@ const TrafficReports = ({ trafficData, allowedRoads }: TrafficReportsProps) => {
         period === "day"
           ? subDays(new Date(), 1)
           : period === "week"
-          ? subDays(new Date(), 7)
-          : subDays(new Date(), 30),
+            ? subDays(new Date(), 7)
+            : subDays(new Date(), 30),
         "yyyy-MM-dd"
       );
 
-      const response = await fetch("http://localhost:8000/api/v1/reports/export/excel", {
+      const response = await fetch(`${endpoints.base}/api/v1/reports/export/excel`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -438,8 +439,8 @@ const TrafficReports = ({ trafficData, allowedRoads }: TrafficReportsProps) => {
                   {peakAnalysis.peakHour.status === "congested"
                     ? "Tắc nghẽn"
                     : peakAnalysis.peakHour.status === "busy"
-                    ? "Đông đúc"
-                    : "Thông thoáng"}
+                      ? "Đông đúc"
+                      : "Thông thoáng"}
                 </Badge>
               </CardContent>
             </Card>

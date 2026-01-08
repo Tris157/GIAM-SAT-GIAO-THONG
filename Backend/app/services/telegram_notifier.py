@@ -98,7 +98,7 @@ class TelegramNotifier:
             vehicle_type = violation_data.get('vehicle_type', 'Unknown')
             license_plate = violation_data.get('license_plate', 'Không nhận diện được')
             camera_name = violation_data.get('camera_name', 'Camera Live')
-            location = violation_data.get('location', 'Hà Nội')
+            location = violation_data.get('location', 'Đà Nẵng')
 
             # Định dạng loại xe
             vehicle_type_vn = "Ô tô" if vehicle_type == "car" else "Xe máy" if vehicle_type == "motor" else "Phương tiện"
@@ -111,6 +111,7 @@ Loai xe: {vehicle_type_vn}
 Bien so: {license_plate}
 Vi tri: {location}
 Camera: {camera_name}
+Live Stream: rtsp://iocqnm:Quangnam$ioc2020@113.174.246.181:554/h264/ch1/main/av_stream
 Thoi gian: {timestamp.strftime('%d/%m/%Y %H:%M:%S')}
 
 He thong da tu dong ghi nhan vi pham.

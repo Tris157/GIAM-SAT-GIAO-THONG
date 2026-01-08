@@ -12,6 +12,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Import rtsp_detection_manager at top-level to avoid local variable error
+try:
+    from app.api.v1.api_rtsp import rtsp_detection_manager
+except ImportError:
+    rtsp_detection_manager = None
+
 logger = logging.getLogger(__name__)
 
 
@@ -207,8 +213,6 @@ Powered by Smart Traffic Monitoring System"""
 
     async def handle_status_command(self, chat_id: str, db_session) -> str:
         """Xử lý lệnh /status - Trạng thái hệ thống"""
-        from app.api.v1.api_rtsp import rtsp_detection_manager
-
         try:
             # Kiểm tra trạng thái camera
             camera_status = "ONLINE" if rtsp_detection_manager.streams else "OFFLINE"

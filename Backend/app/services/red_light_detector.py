@@ -49,6 +49,10 @@ import os
 import asyncio
 # Để chạy async function gửi Telegram
 
+# Dòng 10.5: Import threading
+import threading
+# Để chạy Telegram notification trong background thread
+
 # Dòng 11: Import TelegramNotifier
 from app.services.telegram_notifier import get_telegram_notifier
 # Service gửi cảnh báo qua Telegram Bot
@@ -621,7 +625,16 @@ class RedLightDetector:
                     'timestamp': current_time  # Thời gian vi phạm
                 }
 
-                # --- BƯỚC 10: LƯU ẢNH BẰNG CHỨNG ---
+                # --- BƯỚC 10: CHỈ XỬ LÝ CHO CAMERA RTSP ---
+                # Chỉ lưu ảnh, gửi Telegram, lưu DB cho camera_live
+                # Bỏ qua hoàn toàn cho video test
+                if self.camera_name != "camera_live":
+                    # BỎ QUA video test - không xử lý gì cả
+                    print(f"⏭️ Bỏ qua vi phạm từ video test: {self.camera_name}")
+                    continue
+
+                # Đến đây chỉ còn camera_live (RTSP)
+                # --- LƯU ẢNH BẰNG CHỨNG ---
                 # Dòng 211-213: Tạo filename
                 image_filename = f"violation_{self.camera_name}_{current_time.strftime('%Y%m%d_%H%M%S_%f')}.jpg"
                 # Format: violation_camera_live_20251110_143025_123456.jpg
@@ -652,7 +665,7 @@ class RedLightDetector:
                 violation['image_path'] = image_path
 
                 # --- BƯỚC 11: GỬI TELEGRAM NOTIFICATION ---
-                # Gửi cảnh báo qua Telegram Bot (async, không block)
+                # Gửi cảnh báo qua Telegram Bot (camera_live đã được check ở trên)
                 try:
                     # Tạo violation data cho Telegram
                     telegram_data = {
@@ -663,22 +676,27 @@ class RedLightDetector:
                         'location': 'Hà Nội'  # TODO: Lấy từ config
                     }
 
-                    # Gửi async (trong < 1 giây)
-                    asyncio.create_task(
-                        self.telegram_notifier.send_violation_alert(
-                            annotated_frame,  # Ảnh đã vẽ annotations
-                            telegram_data
+                    # Gửi async trong background thread riêng để không block RTSP
+                    def send_telegram():
+                        asyncio.run(
+                            self.telegram_notifier.send_violation_alert(
+                                annotated_frame,
+                                telegram_data
+                            )
                         )
-                    )
-                    print(f"📱 Telegram notification queued for {vehicle_type}")
+
+                    telegram_thread = threading.Thread(target=send_telegram, daemon=True)
+                    telegram_thread.start()
+                    print(f"📱 Telegram notification queued for camera RTSP: {vehicle_type}")
                 except Exception as e:
                     print(f"⚠️ Telegram notification failed: {e}")
                     # Không throw error, tiếp tục xử lý vi phạm bình thường
 
                 # --- BƯỚC 12: UPDATE STATISTICS ---
-                # Dòng 227-228: Thêm vào list và tăng counter
+                # Dòng 227-228: Thêm vào list và tăng counter (CHỈ cho camera RTSP)
                 violations.append(violation)
                 self.violation_count += 1
+                print(f"✅ Đã ghi nhận vi phạm vượt đèn đỏ từ camera RTSP")
 
                 # --- BƯỚC 13: ADD COOLDOWN VÀ CLEAR BUFFER ---
                 # Dòng 230-231: Lưu cooldown
@@ -765,21 +783,25 @@ class RedLightDetector:
         )
 
         # --- VẼ VẠCH DỪNG ---
-        # Dòng 262-269: Vẽ line ngang
+        # Dòng 262-269: Vẽ line ngang (CHỈ Ở GIỮA KHUNG HÌNH - NỬA CHIỀU RỘNG)
+        frame_width = frame.shape[1]
+        start_x = frame_width // 4  # Bắt đầu từ 1/4 chiều rộng
+        end_x = 3 * frame_width // 4  # Kết thúc ở 3/4 chiều rộng
+
         cv2.line(
             frame,
-            (0, int(self.stop_line_y)),  # Start point (x=0)
-            (frame.shape[1], int(self.stop_line_y)),  # End point (x=width)
+            (start_x, int(self.stop_line_y)),  # Start point (x=width/4)
+            (end_x, int(self.stop_line_y)),  # End point (x=3*width/4)
             (0, 0, 255),  # Red
             3  # Thickness 3px
         )
-        # line(): Vẽ đường thẳng từ trái sang phải
+        # line(): Vẽ đường thẳng ở giữa khung hình (nửa chiều rộng)
 
-        # Dòng 271-280: Text "STOP LINE"
+        # Dòng 271-280: Text "STOP LINE" (Ở GẦN ĐẦU VẠCH)
         cv2.putText(
             frame,
             "STOP LINE - DO NOT CROSS",
-            (10, int(self.stop_line_y) - 10),  # Trên vạch 10px
+            (start_x + 10, int(self.stop_line_y) - 10),  # Trên vạch 10px, gần đầu vạch
             cv2.FONT_HERSHEY_SIMPLEX,
             0.7,
             (0, 0, 255),
@@ -898,20 +920,24 @@ class RedLightDetector:
             if light_status == 'red':
                 line_color = (0, 0, 255)  # Red khi đèn đỏ (cảnh báo!)
 
-            # Dòng 359-365: Vẽ line
+            # Dòng 359-365: Vẽ line (CHỈ Ở GIỮA KHUNG HÌNH - NỬA CHIỀU RỘNG)
+            frame_width = frame.shape[1]
+            start_x = frame_width // 4  # Bắt đầu từ 1/4 chiều rộng
+            end_x = 3 * frame_width // 4  # Kết thúc ở 3/4 chiều rộng
+
             cv2.line(
                 annotated,
-                (0, int(self.stop_line_y)),
-                (frame.shape[1], int(self.stop_line_y)),
+                (start_x, int(self.stop_line_y)),
+                (end_x, int(self.stop_line_y)),
                 line_color,
                 2  # Thickness 2px (mỏng hơn violation)
             )
 
-            # Dòng 366-374: Text "STOP LINE"
+            # Dòng 366-374: Text "STOP LINE" (Ở GẦN ĐẦU VẠCH)
             cv2.putText(
                 annotated,
                 "STOP LINE",
-                (10, int(self.stop_line_y) - 10),
+                (start_x + 10, int(self.stop_line_y) - 10),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.6,
                 line_color,

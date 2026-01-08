@@ -584,7 +584,21 @@ END OF DOCUMENTATION
 
 
 # ============================================================================
-# PHẦN 6: SYNC DATABASE SESSION FOR REPORTS
+# PHẦN 6: SYNC ENGINE FOR BACKGROUND THREADS
+# ============================================================================
+
+# Tạo sync engine cho các background threads (speed violation detector, etc.)
+from sqlalchemy import create_engine as create_sync_engine
+
+# Convert async URL to sync URL
+sync_url = settings.DATABASE_URL.replace("sqlite+aiosqlite:", "sqlite:")
+
+# Create sync engine
+sync_engine = create_sync_engine(sync_url, echo=False, connect_args={"check_same_thread": False})
+
+
+# ============================================================================
+# PHẦN 7: SYNC DATABASE SESSION FOR REPORTS
 # ============================================================================
 
 def get_db_sync():

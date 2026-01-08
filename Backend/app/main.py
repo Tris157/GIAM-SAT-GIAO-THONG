@@ -29,6 +29,7 @@ from app.api.v1 import api_auth  # Router xử lý đăng nhập/đăng ký
 from app.api.v1 import api_weather  # Router xử lý thông tin thời tiết
 from app.api.v1 import api_violations  # Router xử lý vi phạm giao thông
 from app.api.v1 import api_debug_light  # Router DEBUG light detection (NEW)
+from app.api.v1 import api_red_light_config  # Router quản lý config ROI và Stop Line (NEW)
 from app.api.v1 import state  # Module lưu trạng thái global (analyzer, v.v.)
 
 from fastapi import FastAPI  # Framework web FastAPI chính
@@ -61,25 +62,175 @@ os.environ["OPENCV_VIDEOIO_PRIORITY_DSHOW"] = "1"  # 1 = bật DirectShow
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 # ============================================================================
-# PHẦN 3: KHỞI TẠO FASTAPI APPLICATION
+# PHẦN 3: KHỞI TẠO FASTAPI APPLICATION VỚI CẤU HÌNH NÂNG CAO
 # ============================================================================
 
-# Dòng 30: Tạo instance FastAPI chính
-# Đây là "app" mà uvicorn sẽ chạy
+# Import thêm các modules cho middleware
+from fastapi import Request, Response
+from fastapi.responses import JSONResponse
+import time
+import uuid
+from datetime import datetime
+
+# Tạo instance FastAPI với cấu hình chi tiết
 app = FastAPI(
-    title="Smart Traffic Monitoring System API",  # Tên hiển thị trong docs
-    version="2.0.0"  # Phiên bản API
+    title="🚦 Smart Traffic Monitoring System API",
+    description="""
+    ## Hệ thống giám sát giao thông thông minh - Vietnam Transport
+
+    ### 🎯 Tính năng chính:
+    * 📹 **Phát hiện vi phạm giao thông** real-time với AI
+    * 🚗 **Theo dõi phương tiện** và thống kê
+    * 📊 **Báo cáo và phân tích** chi tiết
+    * 🤖 **Chatbot hỗ trợ** thông minh
+    * 📱 **Telegram Bot** thông báo vi phạm
+    * 🌦️ **Tích hợp thông tin thời tiết**
+
+    ### 🔐 Xác thực:
+    Sử dụng JWT Bearer Token cho các API yêu cầu authentication.
+
+    ### 📝 API Response Format:
+    ```json
+    {
+        "success": true,
+        "data": {...},
+        "message": "Success",
+        "request_id": "uuid-here",
+        "timestamp": "2025-12-08T10:30:00"
+    }
+    ```
+    """,
+    version="3.0.0",  # Nâng version lên 3.0.0
+    docs_url="/api/docs",  # Custom docs URL
+    redoc_url="/api/redoc",  # Custom ReDoc URL
+    openapi_url="/api/openapi.json",  # Custom OpenAPI JSON URL
+    contact={
+        "name": "Smart Traffic Team",
+        "email": "support@smarttraffic.vn",
+    },
+    license_info={
+        "name": "MIT License",
+        "url": "https://opensource.org/licenses/MIT",
+    },
 )
 
-# Dòng 31-37: Thêm CORS Middleware
-# CORS = Cross-Origin Resource Sharing
-# Cho phép Frontend (localhost:5173) gọi API Backend (localhost:8000)
+# ============================================================================
+# MIDDLEWARE 1: REQUEST ID TRACKING (Theo dõi mọi request)
+# ============================================================================
+
+@app.middleware("http")
+async def add_request_id_middleware(request: Request, call_next):
+    """
+    Middleware thêm Request ID vào mọi request để tracking
+    Request ID sẽ xuất hiện trong response headers và logs
+    """
+    # Tạo unique request ID
+    request_id = str(uuid.uuid4())
+    request.state.request_id = request_id
+
+    # Thêm vào response headers
+    response = await call_next(request)
+    response.headers["X-Request-ID"] = request_id
+
+    return response
+
+# ============================================================================
+# MIDDLEWARE 2: RESPONSE TIME TRACKING & LOGGING
+# ============================================================================
+
+@app.middleware("http")
+async def add_process_time_middleware(request: Request, call_next):
+    """
+    Middleware đo thời gian xử lý request và log thông tin
+    Hiển thị màu sắc theo response time (xanh/vàng/đỏ)
+    """
+    start_time = time.time()
+
+    # Xử lý request
+    response = await call_next(request)
+
+    # Tính thời gian xử lý
+    process_time = time.time() - start_time
+    process_time_ms = round(process_time * 1000, 2)
+
+    # Thêm vào response headers
+    response.headers["X-Process-Time"] = f"{process_time_ms}ms"
+
+    # Log với màu sắc theo response time
+    request_id = getattr(request.state, 'request_id', 'N/A')
+    method = request.method
+    url = str(request.url.path)
+    status_code = response.status_code
+
+    # Chọn màu dựa trên response time và status code
+    if process_time_ms < 100:
+        time_color = "\033[92m"  # Xanh - nhanh
+    elif process_time_ms < 500:
+        time_color = "\033[93m"  # Vàng - trung bình
+    else:
+        time_color = "\033[91m"  # Đỏ - chậm
+
+    if 200 <= status_code < 300:
+        status_color = "\033[92m"  # Xanh - success
+    elif 400 <= status_code < 500:
+        status_color = "\033[93m"  # Vàng - client error
+    else:
+        status_color = "\033[91m"  # Đỏ - server error
+
+    reset_color = "\033[0m"
+
+    # Log request với màu sắc
+    print(f"📊 [{datetime.now().strftime('%H:%M:%S')}] "
+          f"{method:6} {url:50} "
+          f"{status_color}{status_code}{reset_color} "
+          f"{time_color}{process_time_ms}ms{reset_color} "
+          f"[{request_id[:8]}]")
+
+    return response
+
+# ============================================================================
+# MIDDLEWARE 3: ERROR HANDLER (Xử lý lỗi toàn cục)
+# ============================================================================
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """
+    Middleware xử lý tất cả exceptions chưa được catch
+    Trả về JSON response chuẩn và log chi tiết
+    """
+    import traceback
+
+    request_id = getattr(request.state, 'request_id', 'N/A')
+
+    # Log chi tiết lỗi
+    print(f"\n❌ [ERROR] Request ID: {request_id}")
+    print(f"   URL: {request.method} {request.url}")
+    print(f"   Error: {str(exc)}")
+    print(f"   Traceback:\n{traceback.format_exc()}")
+
+    # Trả về JSON response
+    return JSONResponse(
+        status_code=500,
+        content={
+            "success": False,
+            "error": "Internal Server Error",
+            "message": str(exc),
+            "request_id": request_id,
+            "timestamp": datetime.now().isoformat(),
+        }
+    )
+
+# ============================================================================
+# MIDDLEWARE 4: CORS với Security Headers
+# ============================================================================
+
 app.add_middleware(
-    CORSMiddleware,  # Class xử lý CORS
-    allow_origins=["*"],  # ["*"] = cho phép TẤT CẢ domain gọi API (dev only, production nên giới hạn)
-    allow_credentials=True,  # Cho phép gửi cookies và auth headers
-    allow_methods=["*"],  # Cho phép tất cả HTTP methods (GET, POST, PUT, DELETE, v.v.)
-    allow_headers=["*"],  # Cho phép tất cả headers
+    CORSMiddleware,
+    allow_origins=["*"],  # Production: thay bằng domain cụ thể
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["X-Request-ID", "X-Process-Time"],  # Cho phép frontend đọc headers
 )
 
 # ============================================================================
@@ -95,11 +246,36 @@ async def startup_event():
     """
     import traceback
 
-    print("🚀 Bắt đầu startup event...")
+    # Lưu thời gian bắt đầu
+    app.state.start_time = time.time()
+    app.state.total_requests = 0
+
+    # ANSI colors
+    CYAN = "\033[96m"
+    GREEN = "\033[92m"
+    YELLOW = "\033[93m"
+    RED = "\033[91m"
+    BLUE = "\033[94m"
+    MAGENTA = "\033[95m"
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
+
+    # Banner đẹp
+    print(f"\n{CYAN}{BOLD}")
+    print("╔══════════════════════════════════════════════════════════════╗")
+    print("║                                                              ║")
+    print("║    🚦  SMART TRAFFIC MONITORING SYSTEM  🚦                   ║")
+    print("║                                                              ║")
+    print("║    Vietnam Transport Edition - v3.0.0                       ║")
+    print("║                                                              ║")
+    print("╚══════════════════════════════════════════════════════════════╝")
+    print(f"{RESET}\n")
+
+    print(f"{BOLD}{BLUE}🚀 Khởi động hệ thống...{RESET}\n")
 
     # --- BƯỚC 1: TẠO BẢNG DATABASE ---
     try:
-        print("⏳ Đang tạo database tables...")
+        print(f"{YELLOW}⏳ [1/5] Database: Đang tạo tables...{RESET}")
         # Dùng sync engine để tạo tables (tránh async deadlock)
         # Đổi sqlite+aiosqlite thành sqlite
         from app.core.config import settings
@@ -107,15 +283,15 @@ async def startup_event():
         sync_engine = create_engine(sync_db_url, echo=False)
         Base.metadata.create_all(sync_engine)
         sync_engine.dispose()  # Đóng connection ngay lập tức
-        print("✅ Database tables created successfully")
+        print(f"{GREEN}✅ [1/5] Database: Khởi tạo thành công{RESET}")
     except Exception as e:
-        print(f"❌ Database creation failed: {e}")
+        print(f"{RED}❌ [1/5] Database: Thất bại - {e}{RESET}")
         traceback.print_exc()
         raise
 
     # --- BƯỚC 2: KHỞI TẠO ANALYZER (BACKGROUND THREAD - KHÔNG BLOCK) ---
     try:
-        print("⏳ Analyzer sẽ được khởi tạo trong background thread...")
+        print(f"{YELLOW}⏳ [2/5] AI Analyzer: Đang khởi tạo YOLO models...{RESET}")
 
         # Sử dụng Thread thay vì asyncio để KHÔNG BLOCK startup event
         import threading
@@ -124,72 +300,156 @@ async def startup_event():
             try:
                 import time
                 time.sleep(2)  # Đợi server sẵn sàng
-                print("🔄 Background Thread: Bắt đầu init analyzer...")
+                print(f"{BLUE}🔄 AI Analyzer: Loading models...{RESET}")
                 state.init_analyzer()
-                print("✅ Background Thread: Analyzer đã khởi tạo xong!")
+                print(f"{GREEN}✅ [2/5] AI Analyzer: Khởi tạo thành công{RESET}")
             except Exception as e:
-                print(f"❌ Background Thread: Analyzer init failed: {e}")
+                print(f"{RED}❌ AI Analyzer: Thất bại - {e}{RESET}")
                 traceback.print_exc()
 
         # Tạo daemon thread - chạy độc lập, KHÔNG block main thread
         analyzer_thread = threading.Thread(target=init_analyzer_thread, daemon=True)
         analyzer_thread.start()
-        print("✅ Analyzer background thread started (không đợi init xong)")
+        print(f"{GREEN}✅ [2/5] AI Analyzer: Background thread started{RESET}")
     except Exception as e:
-        print(f"❌ Failed to create analyzer thread: {e}")
+        print(f"{RED}❌ [2/5] AI Analyzer: Thất bại - {e}{RESET}")
         traceback.print_exc()
 
     # --- BƯỚC 3: SCHEDULER (AUTO-SAVE DATA) ---
     try:
+        print(f"{YELLOW}⏳ [3/5] Scheduler: Đang cấu hình...{RESET}")
+
         async def start_scheduler_when_ready():
             try:
-                print("🔄 Background: Đang chờ analyzer khởi tạo...")
                 # Đợi analyzer khởi tạo xong
                 while state.analyzer is None:
                     await asyncio.sleep(1)
 
-                print("🔄 Background: Bắt đầu khởi động scheduler...")
+                print(f"{BLUE}🔄 Scheduler: Đang khởi động...{RESET}")
                 # Khởi động scheduler
                 scheduler = init_scheduler(state.analyzer, interval_seconds=10)
                 await scheduler.start()
-                print("✅ Traffic data auto-save scheduler started (interval: 10s)")
+                print(f"{GREEN}✅ [3/5] Scheduler: Khởi động thành công (interval: 10s){RESET}")
             except Exception as e:
-                print(f"❌ Background: Scheduler failed: {e}")
+                print(f"{RED}❌ Scheduler: Thất bại - {e}{RESET}")
                 traceback.print_exc()
 
         asyncio.create_task(start_scheduler_when_ready())
-        print("✅ Scheduler background task created")
+        print(f"{GREEN}✅ [3/5] Scheduler: Background task created{RESET}")
     except Exception as e:
-        print(f"❌ Failed to create scheduler task: {e}")
+        print(f"{RED}❌ [3/5] Scheduler: Thất bại - {e}{RESET}")
         traceback.print_exc()
 
-    # --- BƯỚC 4: KẾT NỐI RTSP CAMERA ---
-    from app.core.config import settings
-    if settings.ENABLE_RTSP and settings.RTSP_URL:
+    # --- BƯỚC 4: KẾT NỐI RTSP CAMERA (NON-BLOCKING ASYNC) ---
+    print(f"{YELLOW}⏳ [4/5] RTSP Camera: Khởi tạo background task...{RESET}")
+
+    async def init_rtsp_background():
+        """
+        Hàm khởi tạo RTSP chạy ngầm, không block server startup
+        Sử dụng run_in_executor cho các tác vụ nặng (load model, connect camera)
+        """
+        import asyncio
+        # Đợi 2s để server in hết log startup
+        await asyncio.sleep(2)
+
+        from app.core.config import settings
+        
+        if not (settings.ENABLE_RTSP and settings.RTSP_URL):
+             print(f"{MAGENTA}ℹ️  [4/5] RTSP Camera: Đã tắt (Bật trong .env){RESET}")
+             return
+
         try:
+            print(f"{BLUE}🔄 RTSP: Đang khởi tạo connection...{RESET}")
             from app.api.v1.api_rtsp import rtsp_detection_manager, read_rtsp_detection_frames
-            print(f"🔄 Connecting to RTSP Camera: {settings.RTSP_URL}...")
-            success = rtsp_detection_manager.add_stream("camera_live", settings.RTSP_URL)
-            if success:
-                print("✅ RTSP camera connected")
+            from app.services.rtsp_detection_service import RTSPDetectionService
+            
+            # 1. Tạo service object (trong main loop để tạo Lock đúng chỗ)
+            stream = RTSPDetectionService(
+                rtsp_url=settings.RTSP_URL, 
+                camera_name="camera_live",
+                model_path="./app/ai_models/model N/original model/best.pt"
+            )
+
+            # 2. Run blocking tasks in Executor (Thread Pool)
+            loop = asyncio.get_running_loop()
+            
+            # Load Model (Heavy!)
+            print(f"{BLUE}   ...Loading YOLO model (this implies CPU/GPU usage)...{RESET}")
+            model_loaded = await loop.run_in_executor(None, stream.load_model)
+            if not model_loaded:
+                print(f"{RED}❌ RTSP: Không thể load model{RESET}")
+                return
+
+            # Connect Camera (Blocking IO!)
+            print(f"{BLUE}   ...Connecting to RTSP stream...{RESET}")
+            connected = await loop.run_in_executor(None, stream.connect)
+
+            if connected:
+                # 3. Register to manager
+                rtsp_detection_manager.streams["camera_live"] = stream
+                print(f"{GREEN}✅ [4/5] RTSP Camera: Kết nối thành công{RESET}")
+
+                # 4. Configure Red Light
+                try:
+                    # Load config from file if exists
+                    import json
+                    import os
+                    config_file = "./app/config/red_light_config_camera_live.json"
+
+                    if os.path.exists(config_file):
+                        with open(config_file, 'r', encoding='utf-8') as f:
+                            config = json.load(f)
+                            stream.configure_red_light_detection(
+                                roi=config.get("traffic_light_roi", {"x": 1570, "y": 154, "w": 43, "h": 73}),
+                                stop_line_y=config.get("stop_line_y", 544),
+                                enable=True
+                            )
+                            print(f"{GREEN}🚦 Red Light Detection: Đã enable (config file){RESET}")
+                    else:
+                        stream.configure_red_light_detection(
+                                roi={"x": 1570, "y": 154, "w": 43, "h": 73},
+                                stop_line_y=544,
+                                enable=True
+                        )
+                        print(f"{GREEN}🚦 Red Light Detection: Đã enable (default){RESET}")
+                except Exception as e:
+                    print(f"{YELLOW}⚠️  Red Light Config: {e}{RESET}")
+
+                # 5. Start Reading Loop (Async task in main loop)
                 asyncio.create_task(read_rtsp_detection_frames("camera_live"))
+
+                # 6. Connect Internal Camera (Optional)
+                if settings.RTSP_URL_INTERNAL:
+                    print(f"{YELLOW}⏳ Connecting Internal Camera...{RESET}")
+                    stream_internal = RTSPDetectionService(settings.RTSP_URL_INTERNAL, "camera_internal")
+                    if await loop.run_in_executor(None, stream_internal.load_model):
+                        if await loop.run_in_executor(None, stream_internal.connect):
+                            rtsp_detection_manager.streams["camera_internal"] = stream_internal
+                            print(f"{GREEN}✅ Internal Camera Connected{RESET}")
+                            asyncio.create_task(read_rtsp_detection_frames("camera_internal"))
+                        else:
+                            print(f"{RED}❌ Internal Camera Connect Failed{RESET}")
             else:
-                print("❌ Failed to connect to RTSP camera")
+                print(f"{RED}❌ [4/5] RTSP Camera: Connect Failed (Timeout/Unreachable){RESET}")
+
         except Exception as e:
-            print(f"❌ Error connecting to RTSP: {e}")
-    else:
-        print("ℹ️ RTSP camera: Disabled (Enable in .env)")
+            print(f"{RED}❌ [4/5] RTSP Init Error: {e}{RESET}")
+            import traceback
+            traceback.print_exc()
+
+    # Schedule the async initialization
+    asyncio.create_task(init_rtsp_background())
 
     # --- BƯỚC 5: KHỞI ĐỘNG TELEGRAM BOT (BACKGROUND THREAD) ---
     try:
-        print("🔄 Telegram Bot sẽ được khởi tạo trong background...")
+        print(f"{YELLOW}⏳ [5/5] Telegram Bot: Đang khởi động...{RESET}")
 
         # Sử dụng Thread để không block startup event
         def init_telegram_bot_thread():
             try:
                 import time
                 time.sleep(5)  # Đợi server sẵn sàng
-                print("🔄 Background Thread: Bắt đầu init Telegram Bot...")
+                print(f"{BLUE}🔄 Telegram Bot: Connecting...{RESET}")
 
                 # Import và khởi động bot
                 from app.services.telegram_polling import get_polling_service
@@ -204,23 +464,34 @@ async def startup_event():
                 asyncio.set_event_loop(loop)
                 loop.run_until_complete(polling_service.start_polling(db_factory))
 
-                print("✅ Background Thread: Telegram Bot đã khởi tạo xong!")
+                print(f"{GREEN}✅ [5/5] Telegram Bot: Khởi động thành công{RESET}")
             except Exception as e:
-                print(f"❌ Background Thread: Telegram Bot init failed: {e}")
+                print(f"{RED}❌ Telegram Bot: Thất bại - {e}{RESET}")
                 traceback.print_exc()
 
         # Tạo daemon thread
         telegram_thread = threading.Thread(target=init_telegram_bot_thread, daemon=True)
         telegram_thread.start()
-        print("✅ Telegram Bot background thread started (không đợi init xong)")
+        print(f"{GREEN}✅ [5/5] Telegram Bot: Background thread started{RESET}")
     except Exception as e:
-        print(f"⚠️ Failed to create Telegram Bot thread: {e}")
-        print("   (Bot sẽ không hoạt động, nhưng hệ thống vẫn chạy)")
+        print(f"{YELLOW}⚠️  [5/5] Telegram Bot: Không khởi động - {e}{RESET}")
+        print(f"{YELLOW}   (Bot sẽ không hoạt động, nhưng hệ thống vẫn chạy){RESET}")
         traceback.print_exc()
 
-    print("\n" + "="*60)
-    print("🎉 STARTUP EVENT HOÀN THÀNH!")
-    print("="*60 + "\n")
+    # Banner kết thúc
+    print(f"\n{GREEN}{BOLD}")
+    print("╔══════════════════════════════════════════════════════════════╗")
+    print("║                                                              ║")
+    print("║    ✨  HỆ THỐNG ĐÃ KHỞI ĐỘNG THÀNH CÔNG!  ✨                ║")
+    print("║                                                              ║")
+    print("║    🌐 API Docs:    http://localhost:8000/api/docs           ║")
+    print("║    📊 Health:      http://localhost:8000/api/health         ║")
+    print("║    📈 Metrics:     http://localhost:8000/api/system/status  ║")
+    print("║                                                              ║")
+    print("╚══════════════════════════════════════════════════════════════╝")
+    print(f"{RESET}\n")
+
+    print(f"{CYAN}💡 Tip: Nhấn Ctrl+C để tắt server gracefully{RESET}\n")
 
 # ============================================================================
 # PHẦN 5: XỬ LÝ TÍN HIỆU (CTRL+C)
@@ -246,10 +517,116 @@ signal.signal(signal.SIGTERM, signal_handler)  # SIGTERM = kill command
 # PHẦN 6: ĐỊNH NGHĨA ROUTES (API ENDPOINTS)
 # ============================================================================
 
+# ============================================================================
+# PHẦN 6A: HEALTH CHECK & SYSTEM ENDPOINTS
+# ============================================================================
+
+@app.get(
+    path='/api/health',
+    tags=["system"],
+    summary="Health Check",
+    description="Kiểm tra trạng thái sống của API server"
+)
+async def health_check():
+    """
+    Health check endpoint - kiểm tra API có đang hoạt động không
+    Trả về thông tin cơ bản về hệ thống
+    """
+    return {
+        "success": True,
+        "status": "healthy",
+        "service": "Smart Traffic Monitoring System",
+        "version": "3.0.0",
+        "timestamp": datetime.now().isoformat(),
+        "uptime_seconds": round(time.time() - app.state.start_time, 2) if hasattr(app.state, 'start_time') else 0,
+    }
+
+@app.get(
+    path='/api/system/status',
+    tags=["system"],
+    summary="System Status",
+    description="Trạng thái chi tiết của hệ thống"
+)
+async def system_status():
+    """
+    System status endpoint - trạng thái chi tiết của các components
+    """
+    import psutil
+    from app.api.v1 import state
+
+    # CPU và Memory
+    cpu_percent = psutil.cpu_percent(interval=0.5)
+    memory = psutil.virtual_memory()
+
+    # Disk usage
+    disk = psutil.disk_usage('/')
+
+    return {
+        "success": True,
+        "data": {
+            "api": {
+                "status": "running",
+                "version": "3.0.0",
+                "uptime_seconds": round(time.time() - app.state.start_time, 2) if hasattr(app.state, 'start_time') else 0,
+            },
+            "analyzer": {
+                "status": "running" if state.analyzer else "not_initialized",
+                "initialized": state.analyzer is not None,
+            },
+            "system": {
+                "cpu_percent": cpu_percent,
+                "memory": {
+                    "total_gb": round(memory.total / (1024**3), 2),
+                    "used_gb": round(memory.used / (1024**3), 2),
+                    "percent": memory.percent,
+                },
+                "disk": {
+                    "total_gb": round(disk.total / (1024**3), 2),
+                    "used_gb": round(disk.used / (1024**3), 2),
+                    "percent": disk.percent,
+                }
+            }
+        },
+        "timestamp": datetime.now().isoformat(),
+    }
+
+@app.get(
+    path='/api/system/metrics',
+    tags=["system"],
+    summary="System Metrics",
+    description="Metrics và thống kê performance"
+)
+async def system_metrics():
+    """
+    System metrics endpoint - metrics về performance và usage
+    """
+    import psutil
+    from app.api.v1 import state
+
+    # Process hiện tại
+    process = psutil.Process()
+
+    return {
+        "success": True,
+        "data": {
+            "process": {
+                "cpu_percent": process.cpu_percent(interval=0.5),
+                "memory_mb": round(process.memory_info().rss / (1024**2), 2),
+                "num_threads": process.num_threads(),
+                "num_handles": process.num_handles() if sys.platform == 'win32' else 0,
+            },
+            "api": {
+                "total_requests": getattr(app.state, 'total_requests', 0),
+                "uptime_seconds": round(time.time() - app.state.start_time, 2) if hasattr(app.state, 'start_time') else 0,
+            },
+        },
+        "timestamp": datetime.now().isoformat(),
+    }
+
 # Dòng 85-87: Route root "/" redirect về frontend
-@app.get(path='/')  # GET request đến "/"
+@app.get(path='/', include_in_schema=False)  # Ẩn khỏi docs
 def direct_home():
-    # Redirect người dùng về frontend (React app)
+    """Redirect về frontend React app"""
     return RedirectResponse(url='http://localhost:5173/')
 
 # Dòng 89-95: Đăng ký các router (nhóm các endpoints liên quan)
@@ -309,6 +686,13 @@ app.include_router(
     api_debug_light.router,
     prefix="/api/v1",
     tags=["debug"]
+)
+
+# Router 9: Red Light Detection Config (NEW - quản lý ROI và Stop Line)
+app.include_router(
+    api_red_light_config.router,
+    prefix="/api/v1/red-light-config",
+    tags=["red light config"]
 )
 
 # ============================================================================
@@ -404,3 +788,4 @@ KIẾN TRÚC:
     ↓         ↓        ↓          ↓
 [Routers] [Database] [YOLO]  [Scheduler]
 """
+

@@ -1,0 +1,24 @@
+{
+  "camera_name": "camera_live",
+  "region": [
+    [
+      1635,
+      398
+    ],
+    [
+      1722,
+      1075
+    ],
+    [
+      191,
+      1067
+    ],
+    [
+      891,
+      427
+    ]
+  ],
+  "created_at": "2026-01-08T01:56:09.033053",
+  "camera_source": "rtsp://iocqnm:Quangnam$ioc2020@113.174.246.181:554/h264/ch1/main/av_stream",
+  "note": "ROI for vehicle tracking and speed detection"
+}

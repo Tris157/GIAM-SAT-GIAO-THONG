@@ -25,11 +25,13 @@ async def startup_event():
         return
 
     rtsp_url = settings.RTSP_URL
+    meter_per_pixel = settings.RTSP_METER_PER_PIXEL
+    region = settings.RTSP_REGION
 
     # Add stream WITH detection (camera_live)
-    success = rtsp_detection_manager.add_stream("camera_live", rtsp_url)
+    success = rtsp_detection_manager.add_stream("camera_live", rtsp_url, meter_per_pixel=meter_per_pixel, region=region)
     if success:
-        print("✅ RTSP camera with detection connected successfully")
+        print(f"✅ RTSP camera with detection connected (meter_per_pixel={meter_per_pixel}, ROI configured)")
         # Start background task to continuously read and process frames
         asyncio.create_task(read_rtsp_detection_frames("camera_live"))
     else:
@@ -82,7 +84,7 @@ async def read_rtsp_detection_frames(stream_name: str):
                 frame_count += 1
                 if frame_count % 30 == 0:  # Log every 30 frames
                     detections = await stream.get_detections()
-                    print(f"📊 {stream_name}: Cars={detections['count_car']}, Motors={detections['count_motor']}, Total={detections['total_vehicles']}")
+                    print(f"📊 {stream_name}: Cars={detections['count_car']} (Avg speed: {detections['speed_car']} km/h), Motors={detections['count_motor']} (Avg speed: {detections['speed_motor']} km/h), Total={detections['total_vehicles']}")
 
             # Small sleep to avoid CPU spike and allow other tasks to run
             await asyncio.sleep(0.01)
@@ -134,6 +136,12 @@ async def get_rtsp_frame(stream_name: str):
     )
 
 
+@router.get("/rtsp/{stream_name}/snapshot")
+async def get_rtsp_snapshot(stream_name: str):
+    """Get snapshot (same as get_rtsp_frame, just different URL for convenience)"""
+    return await get_rtsp_frame(stream_name)
+
+
 @router.get("/rtsp/detections/{stream_name}")
 async def get_rtsp_detections(stream_name: str):
     """Get current detection results from RTSP stream"""
@@ -178,8 +186,8 @@ async def websocket_rtsp_stream(websocket: WebSocket, stream_name: str):
                         await websocket.send_bytes(frame_bytes)
                         last_frame_id = frame_id
 
-            # Reduce sleep to increase responsiveness
-            await asyncio.sleep(0.03)  # ~33 FPS max
+            # Reduce sleep to increase responsiveness (Min latency)
+            await asyncio.sleep(0.001)  # Almost zero delay, as fast as possible
 
     except WebSocketDisconnect:
         print(f"WebSocket disconnected for stream: {stream_name}")
@@ -193,22 +201,39 @@ async def websocket_rtsp_stream(websocket: WebSocket, stream_name: str):
 
 
 @router.post("/rtsp/add")
-async def add_rtsp_stream(stream_name: str, rtsp_url: str):
-    """Add a new RTSP stream"""
-    if rtsp_manager.get_stream(stream_name):
-        raise HTTPException(status_code=400, detail="Stream already exists")
+async def add_rtsp_stream(stream_name: str, rtsp_url: str, meter_per_pixel: float = 0.04, with_detection: bool = True):
+    """Add a new RTSP stream (with or without detection)"""
+    if with_detection:
+        if rtsp_detection_manager.get_stream(stream_name):
+            raise HTTPException(status_code=400, detail="Stream already exists")
 
-    success = rtsp_manager.add_stream(stream_name, rtsp_url)
-    if not success:
-        raise HTTPException(status_code=500, detail="Failed to connect to RTSP stream")
+        success = rtsp_detection_manager.add_stream(stream_name, rtsp_url, meter_per_pixel=meter_per_pixel)
+        if not success:
+            raise HTTPException(status_code=500, detail="Failed to connect to RTSP stream with detection")
 
-    # Start background task for new stream
-    asyncio.create_task(read_rtsp_frames(stream_name))
+        # Start background task for new stream
+        asyncio.create_task(read_rtsp_detection_frames(stream_name))
 
-    return {
-        "message": "Stream added successfully",
-        "stream_name": stream_name
-    }
+        return {
+            "message": "Stream with detection added successfully",
+            "stream_name": stream_name,
+            "meter_per_pixel": meter_per_pixel
+        }
+    else:
+        if rtsp_manager.get_stream(stream_name):
+            raise HTTPException(status_code=400, detail="Stream already exists")
+
+        success = rtsp_manager.add_stream(stream_name, rtsp_url)
+        if not success:
+            raise HTTPException(status_code=500, detail="Failed to connect to RTSP stream")
+
+        # Start background task for new stream
+        asyncio.create_task(read_rtsp_frames(stream_name))
+
+        return {
+            "message": "Stream added successfully",
+            "stream_name": stream_name
+        }
 
 
 @router.delete("/rtsp/remove/{stream_name}")

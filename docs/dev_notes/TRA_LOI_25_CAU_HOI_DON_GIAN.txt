@@ -1,0 +1,652 @@
+TRA LOI 25 CAU HOI BAO VE DE TAI KHKT
+HE THONG GIAM SAT GIAO THONG THONG MINH SU DUNG TRI TUE NHAN TAO
+=========================================================================
+
+CAU 1: RA SOAT LOI BAO CAO (HINH THUC + NOI DUNG)
+
+Loi hinh thuc:
+- Mot so tieu de thieu dau cham cuoi cau
+- Bang thong ke can can giua tieu de cot
+- Bieu do can xoay truc X 45 do de tranh chong cheo
+
+Loi noi dung:
+- Thieu giai thich y nghia cac chi so thong ke
+- Chua co phan khuyen nghi dua tren du lieu
+- Can bo sung danh gia hieu qua he thong
+
+-------------------------------------------------------------------------
+
+CAU 2: NHIEM VU DE TAI LAM GI?
+
+De tai co 5 nhiem vu chinh:
+
+1. Giam sat giao thong real-time
+   - Phat hien va dem phuong tien (o to, xe may)
+   - Tinh toan toc do trung binh cua tung loai xe
+   - Ho tro giam sat dong thoi 5 tuyen duong
+
+2. Phan tich du lieu giao thong
+   - Xac dinh gio cao diem va gio thap diem
+   - Phan tich xu huong luu luong theo gio va theo ngay
+   - So sanh mat do giao thong giua cac tuyen duong
+
+3. Canh bao tinh trang giao thong
+   - Phan loai: Thong thoang / Dong duc / Tac nghen
+   - Gui canh bao qua Telegram Bot khi phat hien tac nghen
+   - Cap nhat trang thai real-time moi 5 giay
+
+4. Luu tru va bao cao
+   - Luu tru du lieu lich su vao database SQLite
+   - Tao bao cao thong ke theo ngay/tuan/thang
+   - Export du lieu dang CSV, JSON, PDF, Excel
+
+5. Ho tro ra quyet dinh
+   - Chatbot AI tu van tuyen duong toi uu
+   - Goi y thoi gian di chuyen dua tren du lieu lich su
+   - Cung cap insights cho quan ly giao thong
+
+-------------------------------------------------------------------------
+
+CAU 3: HE THONG CO NHUNG CHUC NANG NAO?
+
+He thong co 10 chuc nang chinh:
+
+1. Video Streaming Real-time: WebSocket streaming 15-30 FPS, hien thi bounding boxes
+2. Dem phuong tien: Dem o to (car, truck, bus), dem xe may
+3. Tinh toan toc do: Speed = Distance / Time, don vi km/h
+4. Phan tich gio cao diem: Tu dong phat hien gio dong nhat trong ngay
+5. Xu huong theo thoi gian: Area Chart, Line Chart, Daily trends
+6. So sanh tuyen duong: Bar Chart so sanh 5 tuyen duong
+7. Tao bao cao tu dong: Bao cao ngay/tuan/thang, export da dinh dang
+8. AI Chatbot: Google Gemini tra loi cau hoi ve traffic
+9. Telegram Bot: Canh bao real-time, bao cao hang ngay
+10. Authentication: Dang nhap/Dang ky, JWT token
+
+-------------------------------------------------------------------------
+
+CAU 4: DE TAI VIET MOI HAY KE THUA?
+
+Tinh chat: De tai co TINH KE THUA VA PHAT TRIEN (40% ke thua, 60% phat trien moi)
+
+Phan ke thua (40%):
+- Mo hinh AI: YOLO v11 (Ultralytics), ByteTrack, OpenVINO
+- Framework: FastAPI, React, SQLAlchemy
+
+Phan phat trien moi (60%):
+- Kien truc multiprocessing: Xu ly 5 tuyen duong song song
+- Real-time Analytics Dashboard voi 4 loai bieu do
+- AI Chatbot Integration (Google Gemini)
+- Telegram Bot Notification
+- UI/UX hien dai voi dark theme, glass morphism
+
+So sanh voi de tai cu:
+- So tuyen duong: Cu 1-2, moi 5 (song song)
+- Real-time: Cu batch processing, moi WebSocket streaming
+- AI Assistant: Cu khong co, moi co Gemini chatbot
+- Performance: Cu CPU only, moi OpenVINO + FP16
+
+-------------------------------------------------------------------------
+
+CAU 5: KIEN THUC QUAN TRONG NHAT TRONG DE TAI?
+
+5 kien thuc quan trong:
+
+1. Computer Vision va Deep Learning (40%)
+   - YOLO: CNN-based object detection
+   - ByteTrack: Object tracking voi Kalman Filter
+   - Transfer Learning: Fine-tune tren custom dataset
+
+2. Backend Development (25%)
+   - FastAPI: Async/await programming
+   - WebSocket: Full-duplex communication
+   - Database: SQL, ORM, indexing
+
+3. Frontend Development (20%)
+   - React Hooks (useState, useEffect)
+   - Data Visualization voi Recharts
+   - State Management
+
+4. Multiprocessing (10%)
+   - Python Multiprocessing
+   - Thread Safety, Queue for IPC
+
+5. Performance Optimization (5%)
+   - OpenVINO, INT8 quantization
+   - Caching Strategies
+
+-------------------------------------------------------------------------
+
+CAU 6: THUAT TOAN YOLO v11 LA GI? CHUC NANG?
+
+Dinh nghia:
+YOLO (You Only Look Once) la thuat toan phat hien doi tuong (object detection) su dung Deep Learning. Phien ban 11 phat trien boi Ultralytics (10/2024).
+
+Kien truc:
+- Input Image (640x640)
+- BACKBONE (CSPDarknet): Feature Extraction
+- NECK (PANet): Multi-scale Features
+- HEAD (Detect): Predictions
+- Output: [x, y, w, h, confidence, class]
+
+Chuc nang trong de tai:
+- Phat hien phuong tien (car, motorcycle, bus, truck)
+- Toc do: khoang 200 FPS (YOLO v11n tren GPU)
+- Do chinh xac: tren 90% mAP
+
+Tai sao chon YOLO:
+- One-stage detector nen nhanh
+- End-to-end training nen don gian
+- Open source va Active community
+
+-------------------------------------------------------------------------
+
+CAU 7: THUAT TOAN BYTETRACK LA GI? CHUC NANG?
+
+Dinh nghia:
+ByteTrack la thuat toan Multi-Object Tracking (MOT) - theo doi nhieu doi tuong qua video, phat trien nam 2021 boi ByteDance.
+
+Muc dich: Gan ID duy nhat cho moi xe, theo doi xe qua nhieu frames
+
+Van de giai quyet:
+- Khong tracking: Frame 1: 3 xe, Frame 2: 3 xe, Frame 3: 4 xe. Tong = 10 (SAI)
+- Co tracking: Frame 1: Xe A, B, C. Frame 2: Xe A, B, C (same IDs). Frame 3: Xe A, B, C, D. Tong = 4 xe (DUNG)
+
+Thuat toan:
+1. Kalman Filter: Du doan vi tri xe o frame tiep theo
+2. IoU Matching: Tinh do overlap giua predicted va detected boxes
+3. Hungarian Algorithm: Optimal assignment
+
+Chuc nang trong de tai:
+- Dem xe chinh xac (khong dem trung)
+- Tinh toc do dua tren trajectory
+- Phat hien vi pham
+
+-------------------------------------------------------------------------
+
+CAU 8: HE THONG CAN LAP DAT O DAU?
+
+He thong lap dat o 3 vi tri chinh:
+
+1. Camera giam sat:
+   - Vi tri: Giao lo den do, dau duong cao toc, khu vuc hay tac nghen
+   - Chieu cao: 4-6m
+   - Goc nhin: 30-45 do
+   - Yeu cau: tren 1080p, tren 25fps, IP Camera RTSP, IP66/IP67
+
+2. Server xu ly:
+   - Option 1: On-premise (tru so CSGT) - CPU Xeon, RAM 32GB+, GPU NVIDIA T4
+   - Option 2: Edge Computing (gan camera) - NVIDIA Jetson Orin
+   - Option 3: Cloud Server (AWS, GCP)
+
+3. Tram giam sat:
+   - Vi tri: Phong dieu hanh CSGT, So GTVT
+   - Thiet bi: PC i5, 8GB RAM, man hinh 24-27 inch
+
+Chi phi uoc tinh:
+- 1 diem giam sat: khoang 6 trieu VND
+- He thong 5 cameras: khoang 200 trieu VND
+- Van hanh: khoang 7 trieu VND/thang
+
+-------------------------------------------------------------------------
+
+CAU 9: PHUONG AN LUU TRU DU LIEU LAU DAI?
+
+4 phuong an:
+
+1. Tiered Storage: Chi phi 53 trieu/nam, dung luong 30TB, do phuc tap trung binh
+2. Smart Compression: Chi phi 6.6 trieu/nam, dung luong 241GB, do phuc tap thap
+3. Database only: Chi phi 300k/nam, dung luong 37.5GB, do phuc tap cao
+4. Hybrid: Chi phi 10 trieu/nam, dung luong 5TB, do phuc tap cao
+
+Khuyen nghi:
+- Cho KHKT (quy mo nho): Phuong an 2 - Smart Compression
+- Cho thuc te (quy mo lon): Phuong an 4 - Hybrid
+
+Chi tiet Phuong an 2:
+- Chi luu frames co xe (khoang 30% thoi gian)
+- Metadata JSON + Thumbnails
+- Tiet kiem 163 lan so voi luu full video
+
+-------------------------------------------------------------------------
+
+CAU 10-11: BO DU LIEU HUAN LUYEN VA NGUON GOC?
+
+De tai su dung 3 bo du lieu:
+
+1. COCO Dataset (Pre-training) - DA CO SAN
+   - Nguon: Microsoft COCO
+   - Kich thuoc: 330K images, 1.5M instances
+   - Classes: 80 classes (co car, motorcycle, bus, truck)
+
+2. Custom Vietnam Traffic Dataset (Fine-tuning) - TU THU THAP
+   - Kich thuoc: 10,000 images (sau augmentation)
+   - Classes: 4 (car, motorcycle, truck, bus)
+   - Distribution: car 56%, motorcycle 35%, truck 6%, bus 3%
+
+3. Test Videos - LAY TU YOUTUBE/CAMERA
+   - 5 videos x 30 phut = 150 phut, 6.2GB
+   - Tuyen duong: Van Phu, Van Quan, Nguyen Trai, Nga Tu So, Duong Lang
+
+-------------------------------------------------------------------------
+
+CAU 12: TAI SAO KHONG DEMO VOI DU LIEU NOI SINH SONG?
+
+Ly do chon du lieu Ha Noi:
+
+1. Da dang tinh huong: Ha Noi co mat do xe cao, nhieu loai xe, nhieu giao lo phuc tap, giup thu nghiem toan dien hon
+
+2. Du lieu san co: Camera giao thong cong cong Ha Noi co chat luong tot, de truy cap qua YouTube
+
+3. Tinh dai dien: Ha Noi dai dien cho giao thong do thi lon tai Viet Nam
+
+4. Han che thuc te:
+   - Quang Nam/noi sinh song: Camera it, chat luong thap
+   - Viec lap camera rieng can xin phep, chi phi cao
+
+Ke hoach tuong lai: Khi trien khai thuc te, se thu thap va test voi du lieu dia phuong
+
+-------------------------------------------------------------------------
+
+CAU 13: SO DO HOAT DONG CUA HE THONG
+
+1. CAMERA (Video Input)
+   - Video tu 5 tuyen duong
+   |
+   V
+2. AI DETECTION 
+   - YOLO v11 phat hien xe
+   - ByteTrack gan track ID
+   - Speed Calculation
+   |
+   V
+3. BACKEND (FastAPI)
+   - Xu ly logic
+   - SQLite luu tru
+   - WebSocket streaming
+   |
+   V
+4. FRONTEND (React)
+   - Hien thi 4 tabs: Monitor, Analytics, Reports, Chatbot
+   |
+   V
+5. OUTPUT
+   - Dashboard: Hien thi theo doi real-time
+   - Telegram Bot: Canh bao tac nghen
+   - AI Chatbot: Tu van giao thong
+   - Export Data: CSV, JSON, PDF
+
+-------------------------------------------------------------------------
+
+CAU 14: HE THONG VIET BANG NGON NGU GI?
+
+- Backend: Python 3.12 + FastAPI 0.115
+- Frontend: TypeScript + React 19.2 + Vite 7.0
+- AI/ML: Python + YOLO (Ultralytics 8.3, yolo11n.pt)
+- Database: SQLite + SQLAlchemy 2.0
+- Chatbot: Google Gemini (gemini-2.5-flash)
+- Chart: Recharts 2.15
+- Styling: TailwindCSS 3.4
+
+-------------------------------------------------------------------------
+
+CAU 15: LAM THE NAO DE TICH HOP CAMERA THUC TE?
+
+Cac buoc tich hop camera RTSP:
+
+Buoc 1: Cau hinh camera
+- Bat chuc nang RTSP tren camera
+- Lay URL RTSP (vi du: rtsp://admin:password@192.168.1.100:554/stream)
+
+Buoc 2: Cap nhat file cau hinh
+- Them URL camera vao file config
+
+Buoc 3: Su dung OpenCV doc stream
+- cap = cv2.VideoCapture("rtsp://...")
+- Doc frame va xu ly
+
+Luu y:
+- Camera phai chung mang LAN hoac co IP tinh
+- Dam bao bandwidth du (2-4 Mbps/camera)
+- Can UPS de tranh mat dien
+
+-------------------------------------------------------------------------
+
+CAU 16: TAI SAO DUNG TELEGRAM THAY VI ZALO/MESSENGER/GMAIL?
+
+So sanh:
+
+Telegram:
+- Bot API: Mien phi, de dung
+- Rate limit: 30 msg/s
+- Media: Anh, video, file
+- Realtime: Instant
+- Mien phi: 100%
+
+Zalo:
+- Bot API: Phai dang ky OA
+- Rate limit: 500 msg/ngay
+- Realtime: Delay
+- Mien phi: Co phi OA
+
+Messenger:
+- Bot API: Kho approve
+- Rate limit: 200 msg/ngay
+- Realtime: Delay
+- Mien phi: Co phi
+
+Gmail:
+- Bot API: Co API
+- Rate limit: 500 email/ngay
+- Realtime: Khong realtime
+- Mien phi: Mien phi
+
+Ket luan: Telegram la lua chon tot nhat vi Bot API mien phi, khong gioi han, gui tin nhan instant, ho tro anh/video, de lap trinh, nhieu tai lieu, khong can dang ky doanh nghiep.
+
+-------------------------------------------------------------------------
+
+CAU 17: DANG MICROSERVICE LA GI?
+
+Dinh nghia:
+Microservice la kien truc chia ung dung thanh nhieu service doc lap, moi service xu ly mot chuc nang cu the.
+
+So sanh:
+- Monolithic (1 khoi): Tat ca code trong 1 project
+- Microservice: Chia thanh nhieu service nho (Auth Service, Video Service, v.v.)
+
+Uu diem:
+- De scale (tang so luong service can thiet)
+- De bao tri (sua 1 service khong anh huong service khac)
+- Cong nghe linh hoat (moi service co the dung ngon ngu khac nhau)
+
+Trong de tai nay: De tai su dung kien truc microservice-ready (Backend va Frontend tach biet)
+
+-------------------------------------------------------------------------
+
+CAU 18: DANG STREAMING (KAFKA, MQTT) LA GI?
+
+Dinh nghia:
+Streaming la phuong thuc truyen du lieu lien tuc, real-time giua cac thanh phan he thong.
+
+Cac cong nghe streaming:
+- Kafka: Message broker phan tan, dung cho Big data, log processing
+- MQTT: Protocol nhe cho IoT, dung cho Sensor, thiet bi nhung
+- WebSocket: Full-duplex qua HTTP, dung cho Web real-time
+- RabbitMQ: Message queue don gian, dung cho Task queue
+
+Trong de tai nay:
+- Su dung WebSocket cho video streaming
+- Co the upgrade len Kafka khi scale lon (100+ cameras)
+
+-------------------------------------------------------------------------
+
+CAU 19: CONG NGHE BLOCKCHAIN LA GI?
+
+Dinh nghia:
+Blockchain la cong nghe luu tru du lieu phan tan, khong the sua doi (immutable), duoc xac thuc boi nhieu node.
+
+Dac diem:
+- Phan tan: Du lieu luu o nhieu may
+- Bat bien: Khong the sua du lieu da ghi
+- Minh bach: Moi nguoi co the xac thuc
+
+Ung dung cho giao thong:
+1. Luu tru vi pham khong the sua doi - Bang chung phap ly
+2. Smart Contract tu dong phat - Khi phat hien vi pham tu dong tru tien
+3. Chia se du lieu giua cac co quan - Minh bach, khong gia mao
+
+Trong de tai hien tai: Chua ap dung blockchain, nhung co the la huong phat trien tuong lai
+
+-------------------------------------------------------------------------
+
+CAU 20: CHI PHI 2-5 TRIEU DONG/DIEM - CON CHI PHI LAP DAT?
+
+Chi phi uoc tinh day du:
+
+1 diem giam sat (1 camera):
+- Camera IP 1080p: 2,500,000 VND
+- Bracket + mount: 300,000 VND
+- Cap mang Cat6 (50m): 500,000 VND
+- Switch POE: 1,200,000 VND
+- Nguon dien + UPS: 800,000 VND
+- Vat tu: 200,000 VND
+- Nhan cong lap dat: 500,000 VND
+- TONG: khoang 6,000,000 VND
+
+He thong 5 cameras:
+- 5x Camera setup: 30,000,000 VND
+- Server: 80,000,000 VND
+- GPU (NVIDIA T4): 25,000,000 VND
+- Storage (4TB SSD): 12,000,000 VND
+- Networking: 10,000,000 VND
+- Lap dat + Training: 15,000,000 VND
+- TONG: khoang 200,000,000 VND
+
+Chi phi van hanh (thang):
+- Dien: 3 trieu
+- Internet: 1 trieu
+- Bao tri: 2 trieu
+- Tong: khoang 7 trieu/thang
+
+-------------------------------------------------------------------------
+
+CAU 21: DE TAI THUC HIEN DUOC GI?
+
+Ket qua dat duoc:
+
+Ve mat ky thuat:
+- Xay dung thanh cong he thong 5 layers
+- Tich hop YOLO v11 + ByteTrack + Speed Calculation
+- Backend FastAPI voi REST API + WebSocket
+- Frontend React voi 4 tabs chuc nang
+- AI Chatbot Google Gemini
+- Database SQLite
+
+Hieu suat:
+- Do chinh xac: Muc tieu tren 90%, ket qua 90-95% (DAT)
+- Toc do xu ly: Muc tieu tren 15 FPS, ket qua 20 FPS (DAT)
+- Thoi gian/frame: Muc tieu duoi 100ms, ket qua 50ms (DAT)
+- So tuyen: Muc tieu tren 3, ket qua 5 (DAT)
+- Chi phi: Muc tieu duoi 10 trieu, ket qua 5-10 trieu (DAT)
+
+So sanh voi thuong mai:
+- Dat 90-95% hieu qua
+- Chi phi chi 10% (5-10 trieu vs 50-100 trieu)
+- Co AI Chatbot (thuong mai khong co)
+- Ma nguon mo
+
+-------------------------------------------------------------------------
+
+CAU 22: TON TAI CUA DE TAI LA GI?
+
+Cac han che:
+
+1. Ve do chinh xac:
+   - Thap hon 3-5% so voi giai phap thuong mai
+   - Kho phat hien xe rat nho (duoi 32px)
+   - Co the nham lan xe gan nhau
+
+2. Ve chuc nang:
+   - Chua co OCR nhan dien bien so
+   - Chua phat hien vi pham vuot den do, lan duong
+   - Chua du doan un tac
+
+3. Ve dieu kien:
+   - Chua test ky ban dem
+   - Chua test dieu kien mua, suong mu
+   - Chi test voi video, chua test camera thuc te
+
+4. Ve quy mo:
+   - Hien chi ho tro 5 tuyen duong
+   - Database SQLite khong phu hop cho quy mo lon
+
+-------------------------------------------------------------------------
+
+CAU 23: HUONG PHAT TRIEN DANH CHO DE TAI?
+
+Ngan han (3-6 thang):
+
+1. OCR nhan dien bien so xe
+   - Cong nghe: PaddleOCR hoac EasyOCR
+   - Bien phap: Fine-tune model voi bien so Viet Nam
+   - Du kien: Do chinh xac tren 85%
+
+2. Nang cap database
+   - Chuyen tu SQLite sang PostgreSQL
+   - Them partitioning theo thoi gian
+
+Trung han (6-12 thang):
+
+3. Phat hien mu bao hiem
+   - Cong nghe: YOLO v11 + custom dataset
+   - Quy trinh: Thu thap 5,000 anh, label, train
+   - Ung dung: Phat hien nguoi khong doi mu
+
+4. Phat hien qua toc do
+   - Cong nghe: Speed calculation + threshold
+   - Ket hop GPS mapping de xac dinh toc do gioi han
+
+5. Phat hien sai lan duong
+   - Cong nghe: Lane detection + YOLO
+   - Dung thuat toan Hough Transform hoac Deep Learning
+
+Dai han (1-2 nam):
+
+6. Du doan un tac bang AI
+   - Cong nghe: LSTM/Transformer
+   - Du lieu: Lich su luu luong theo gio, ngay, thoi tiet
+
+7. Mobile App
+   - Cong nghe: React Native
+   - Chuc nang: Xem traffic, nhan canh bao, chat AI
+
+8. Tich hop Smart City
+   - Ket noi voi den giao thong thong minh
+   - Dieu chinh tin hieu den tu dong
+
+-------------------------------------------------------------------------
+
+CAU 24: BAI THUYET TRINH 3 PHUT + DEMO 3 PHUT
+
+KICH BAN THUYET TRINH (3 phut):
+
+Phut 1: Gioi thieu van de va giai phap (60 giay)
+
+"Kinh thua quy thay co va cac ban,
+
+Em ten la Doan Ba Tri, em xin trinh bay de tai: He thong giam sat giao thong thong minh su dung tri tue nhan tao.
+
+Van de: Theo Uy ban An toan giao thong Quoc gia, 10 thang dau nam 2025, ca nuoc xay ra hon 15,000 vu tai nan giao thong, lam chet hon 8,500 nguoi. Mot trong nhung nguyen nhan chinh la thieu he thong giam sat thong minh.
+
+Giai phap: Em da xay dung he thong su dung YOLO v11 de phat hien xe, ByteTrack de theo doi xe, va AI Chatbot de tu van giao thong - voi chi phi chi 5-10 trieu dong, thap hon 90% so voi giai phap thuong mai."
+
+Phut 2: Gioi thieu ket qua (60 giay)
+
+"He thong dat duoc cac ket qua sau:
+- Do chinh xac 90-95% trong phat hien xe
+- Toc do xu ly 20 FPS - du cho giam sat real-time
+- Ho tro 5 tuyen duong dong thoi
+
+He thong co 4 chuc nang chinh:
+1. Tab Giam sat: Stream video real-time, hien thi bounding boxes quanh xe
+2. Tab Phan tich: Bieu do gio cao diem, xu huong luu luong
+3. Tab Bao cao: Export du lieu CSV, JSON
+4. Tab Chatbot: AI tu van tuyen duong toi uu
+
+Ngoai ra con co Telegram Bot gui canh bao khi phat hien tac nghen."
+
+Phut 3: Ket luan va huong phat trien (60 giay)
+
+"Tong ket, de tai da hoan thanh cac muc tieu de ra:
+- Giam sat giao thong real-time
+- Phan tich du lieu tu dong
+- Chi phi thap, hieu qua cao
+
+Trong tuong lai, em du dinh phat trien them:
+- Nhan dien bien so xe bang OCR
+- Phat hien vi pham vuot den do, qua toc do
+- Du doan un tac bang Deep Learning
+
+Em xin cam on thay co va cac ban da lang nghe. Em xin duoc chuyen sang phan demo."
+
+---
+
+KICH BAN DEMO (3 phut):
+
+Buoc 1: Gioi thieu giao dien (30 giay)
+- Mo trinh duyet, truy cap http://localhost:5173
+- Dang nhap voi tai khoan demo
+- Gioi thieu: "Day la giao dien chinh cua he thong voi 4 tabs."
+
+Buoc 2: Demo Tab Giam sat (60 giay)
+- Click vao camera "Van Phu"
+- Chi vao bounding boxes: "Day la cac xe duoc YOLO phat hien"
+- Chi vao track ID: "Moi xe co ID rieng nho ByteTrack"
+- Chi vao toc do: "Toc do trung binh duoc tinh tu dong"
+- Chi vao trang thai: "He thong tu phan loai Thong thoang/Dong duc/Tac nghen"
+
+Buoc 3: Demo Tab Phan tich (45 giay)
+- Click tab "Phan tich"
+- Chi Area Chart: "Bieu do nay hien thi xu huong luu luong theo 24 gio"
+- Chi Peak Hour: "Gio cao diem la 17:00-18:00"
+- Chi Bar Chart: "So sanh 5 tuyen duong - Nga Tu So dong nhat"
+
+Buoc 4: Demo Tab Bao cao (30 giay)
+- Click tab "Bao cao"
+- Chon khoang thoi gian
+- Click "Export CSV" - File duoc tai ve
+- Mo file CSV de show du lieu
+
+Buoc 5: Demo AI Chatbot (45 giay)
+- Click tab "Chatbot"
+- Go: "Tuyen duong nao dang thong thoang nhat?"
+- Doi AI tra loi
+- Go: "Gio cao diem hom nay la may gio?"
+- Doi AI tra loi voi du lieu thuc
+
+Ket thuc (10 giay)
+"Do la toan bo demo cua em. Em xin cam on va san sang tra loi cau hoi tu quy thay co."
+
+-------------------------------------------------------------------------
+
+CAU 25: PHAT THAO POSTER
+
+Poster chia lam 5 phan chinh:
+
+PHAN 1: TIEU DE (Phia tren cung)
+- Ten de tai: HE THONG GIAM SAT GIAO THONG THONG MINH SU DUNG TRI TUE NHAN TAO
+- Ten tac gia: Doan Ba Tri
+- Truong, lop
+- Logo cuoc thi KHKT
+
+PHAN 2: VAN DE NGHIEN CUU (Ben trai, phia tren)
+- Thuc trang: 15,000 vu TNGT, 8,500 nguoi chet (10 thang 2025)
+- Van de: Thieu he thong giam sat thong minh
+- Muc tieu: Xay dung he thong chi phi thap, hieu qua cao
+
+PHAN 3: PHUONG PHAP (Giua)
+- So do he thong: Camera -> YOLO -> ByteTrack -> Backend -> Frontend
+- Cong nghe: YOLO v11, ByteTrack, FastAPI, React, Google Gemini
+- Chuc nang: 4 tabs (Giam sat, Phan tich, Bao cao, Chatbot)
+
+PHAN 4: KET QUA (Ben phai, phia tren)
+- Do chinh xac: 90-95%
+- Toc do: 20 FPS
+- So tuyen: 5 dong thoi
+- Chi phi: 5-10 trieu (thap hon 90% thuong mai)
+- Hinh anh giao dien he thong
+
+PHAN 5: KET LUAN VA HUONG PHAT TRIEN (Phia duoi)
+- Ket luan: Hoan thanh muc tieu de ra, chi phi thap, hieu qua cao
+- Huong phat trien:
+  + OCR nhan dien bien so
+  + Phat hien mu bao hiem
+  + Phat hien vi pham, qua toc do
+  + Du doan un tac bang AI
+
+Thong tin lien he: Email, GitHub
+
+-------------------------------------------------------------------------
+
+HET
+
+Tài liệu này duoc tao de ho tro on tap bao ve de tai KHKT

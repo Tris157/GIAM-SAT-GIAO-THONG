@@ -41,92 +41,584 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* ==================== VIETNAM TRANSPORT THEME - GLOBAL ==================== */
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
+  --radius: 0.75rem;
 
-.dark {
-  --background: oklch(0.08 0.02 250);
-  --foreground: oklch(0.98 0.01 250);
-  --card: oklch(0.12 0.025 250 / 0.5);
-  --card-foreground: oklch(0.98 0.01 250);
-  --popover: oklch(0.12 0.025 250);
-  --popover-foreground: oklch(0.98 0.01 250);
-  --primary: oklch(0.65 0.25 250);
-  --primary-foreground: oklch(0.98 0.01 250);
-  --secondary: oklch(0.18 0.03 250);
-  --secondary-foreground: oklch(0.98 0.01 250);
-  --muted: oklch(0.18 0.03 250);
-  --muted-foreground: oklch(0.65 0.02 250);
-  --accent: oklch(0.55 0.28 200);
-  --accent-foreground: oklch(0.98 0.01 250);
-  --destructive: oklch(0.65 0.25 25);
-  --border: oklch(0.25 0.03 250 / 0.3);
-  --input: oklch(0.2 0.03 250 / 0.5);
-  --ring: oklch(0.65 0.25 250 / 0.5);
+  /* Light Mode (Rarely used - default is dark) */
+  --background: oklch(0.98 0.005 250);
+  --foreground: oklch(0.15 0.01 250);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.15 0.01 250);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0.01 250);
+  --primary: oklch(0.35 0.15 250);
+  --primary-foreground: oklch(0.98 0.005 250);
+  --secondary: oklch(0.94 0.01 250);
+  --secondary-foreground: oklch(0.20 0.01 250);
+  --muted: oklch(0.95 0.01 250);
+  --muted-foreground: oklch(0.55 0.02 250);
+  --accent: oklch(0.60 0.20 190);
+  --accent-foreground: oklch(0.98 0.005 250);
+  --destructive: oklch(0.58 0.24 25);
+  --border: oklch(0.90 0.01 250);
+  --input: oklch(0.88 0.01 250 / 0.5);
+  --ring: oklch(0.60 0.20 190 / 0.5);
   --chart-1: oklch(0.65 0.28 265);
   --chart-2: oklch(0.70 0.22 190);
   --chart-3: oklch(0.75 0.20 160);
   --chart-4: oklch(0.68 0.26 310);
   --chart-5: oklch(0.72 0.24 45);
-  --sidebar: oklch(0.10 0.02 250);
-  --sidebar-foreground: oklch(0.98 0.01 250);
-  --sidebar-primary: oklch(0.65 0.25 250);
-  --sidebar-primary-foreground: oklch(0.98 0.01 250);
-  --sidebar-accent: oklch(0.18 0.03 250);
-  --sidebar-accent-foreground: oklch(0.98 0.01 250);
-  --sidebar-border: oklch(0.25 0.03 250 / 0.3);
-  --sidebar-ring: oklch(0.65 0.25 250 / 0.5);
+  --sidebar: oklch(0.98 0.005 250);
+  --sidebar-foreground: oklch(0.15 0.01 250);
+  --sidebar-primary: oklch(0.35 0.15 250);
+  --sidebar-primary-foreground: oklch(0.98 0.005 250);
+  --sidebar-accent: oklch(0.94 0.01 250);
+  --sidebar-accent-foreground: oklch(0.20 0.01 250);
+  --sidebar-border: oklch(0.90 0.01 250);
+  --sidebar-ring: oklch(0.60 0.20 190 / 0.5);
+}
+
+/* ==================== DARK MODE - VIETNAM TRANSPORT PROFESSIONAL ==================== */
+.dark {
+  /* Background - Deep Navy/Black */
+  --background: oklch(0.06 0.025 250);
+  --foreground: oklch(0.98 0.01 200);
+
+  /* Cards & Surfaces - Dark Blue with Glassmorphism */
+  --card: oklch(0.10 0.03 250 / 0.7);
+  --card-foreground: oklch(0.98 0.01 200);
+  --popover: oklch(0.11 0.03 250 / 0.95);
+  --popover-foreground: oklch(0.98 0.01 200);
+
+  /* Primary - Cyan/Tech Blue (Vietnam Transport Accent) */
+  --primary: oklch(0.68 0.18 200);
+  --primary-foreground: oklch(0.98 0.01 200);
+
+  /* Secondary - Navy Blue */
+  --secondary: oklch(0.16 0.04 250);
+  --secondary-foreground: oklch(0.98 0.01 200);
+
+  /* Muted - Subtle Dark Blue */
+  --muted: oklch(0.16 0.035 250);
+  --muted-foreground: oklch(0.68 0.025 250);
+
+  /* Accent - Bright Cyan (Highlight Color) */
+  --accent: oklch(0.70 0.20 195);
+  --accent-foreground: oklch(0.98 0.01 200);
+
+  /* Destructive - Professional Red */
+  --destructive: oklch(0.62 0.24 28);
+
+  /* Borders & Inputs - Cyan Tint */
+  --border: oklch(0.22 0.04 250 / 0.35);
+  --input: oklch(0.18 0.035 250 / 0.6);
+  --ring: oklch(0.70 0.20 195 / 0.5);
+
+  /* Charts - Navy & Cyan Palette */
+  --chart-1: oklch(0.68 0.20 195);
+  --chart-2: oklch(0.72 0.22 210);
+  --chart-3: oklch(0.65 0.18 250);
+  --chart-4: oklch(0.70 0.20 180);
+  --chart-5: oklch(0.75 0.22 165);
+
+  /* Sidebar - Professional Dark Navy */
+  --sidebar: oklch(0.08 0.028 250);
+  --sidebar-foreground: oklch(0.98 0.01 200);
+  --sidebar-primary: oklch(0.70 0.20 195);
+  --sidebar-primary-foreground: oklch(0.98 0.01 200);
+  --sidebar-accent: oklch(0.16 0.04 250);
+  --sidebar-accent-foreground: oklch(0.98 0.01 200);
+  --sidebar-border: oklch(0.22 0.04 250 / 0.35);
+  --sidebar-ring: oklch(0.70 0.20 195 / 0.5);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Selection color - Cyan */
+  ::selection {
+    background-color: oklch(0.70 0.20 195 / 0.3);
+    color: oklch(0.98 0.01 200);
+  }
+
+  /* Scrollbar styling - Dark Navy & Cyan */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: oklch(0.08 0.028 250);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: oklch(0.70 0.20 195 / 0.4);
+    border-radius: 5px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.70 0.20 195 / 0.6);
   }
 }
 
-/* Highlight.js styling for code blocks */
+/* ==================== GLASSMORPHISM EFFECTS ==================== */
+@layer utilities {
+  .glass-card {
+    @apply bg-card/70 backdrop-blur-xl border-border/30;
+    box-shadow:
+      0 8px 32px rgba(6, 182, 212, 0.08),
+      0 0 0 1px rgba(6, 182, 212, 0.06) inset;
+  }
+
+  .glass-card-hover {
+    @apply transition-all duration-300 hover:bg-card/80 hover:border-accent/40;
+    box-shadow:
+      0 12px 48px rgba(6, 182, 212, 0.12),
+      0 0 0 1px rgba(6, 182, 212, 0.1) inset;
+  }
+
+  .glow-effect {
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+  }
+
+  .glow-effect-strong {
+    box-shadow:
+      0 0 30px rgba(6, 182, 212, 0.4),
+      0 0 60px rgba(6, 182, 212, 0.2);
+  }
+}
+
+/* ==================== GRADIENT BACKGROUNDS ==================== */
+@layer utilities {
+  .bg-gradient-navy-cyan {
+    background: linear-gradient(135deg,
+      oklch(0.10 0.03 250) 0%,
+      oklch(0.16 0.04 250) 50%,
+      oklch(0.22 0.05 195) 100%);
+  }
+
+  .bg-gradient-dark {
+    background: linear-gradient(135deg,
+      oklch(0.06 0.025 250) 0%,
+      oklch(0.08 0.028 250) 50%,
+      oklch(0.06 0.025 250) 100%);
+  }
+
+  .text-gradient-cyan {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg,
+      oklch(0.70 0.20 195) 0%,
+      oklch(0.75 0.22 185) 100%);
+  }
+}
+
+/* ==================== CODE HIGHLIGHTING ==================== */
 .hljs {
   background: var(--color-muted) !important;
   color: var(--color-foreground) !important;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   padding: 1rem;
+  border: 1px solid var(--color-border);
 }
 
 .dark .hljs {
-  background: var(--color-card) !important;
+  background: oklch(0.10 0.03 250 / 0.6) !important;
+  border-color: oklch(0.22 0.04 250 / 0.4);
+  box-shadow: 0 4px 20px rgba(6, 182, 212, 0.05);
+}
+
+/* ==================== BUTTONS - PROFESSIONAL STYLE ==================== */
+@layer components {
+  .btn-primary {
+    @apply bg-primary text-primary-foreground px-6 py-2.5 rounded-xl font-semibold;
+    @apply transition-all duration-300 hover:scale-105 hover:shadow-lg;
+    box-shadow:
+      0 4px 20px rgba(6, 182, 212, 0.3),
+      0 0 0 1px rgba(6, 182, 212, 0.1) inset;
+  }
+
+  .btn-primary:hover {
+    box-shadow:
+      0 8px 30px rgba(6, 182, 212, 0.4),
+      0 0 0 2px rgba(6, 182, 212, 0.15) inset,
+      0 0 40px rgba(6, 182, 212, 0.2);
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground px-6 py-2.5 rounded-xl font-semibold;
+    @apply transition-all duration-300 hover:bg-secondary/80;
+  }
+
+  .btn-outline {
+    @apply border-2 border-primary text-primary px-6 py-2.5 rounded-xl font-semibold;
+    @apply transition-all duration-300 hover:bg-primary hover:text-primary-foreground;
+  }
+}
+
+/* ==================== CARDS - GOVERNMENT STYLE ==================== */
+@layer components {
+  .card-pro {
+    @apply bg-card/70 backdrop-blur-xl rounded-2xl p-6 border border-border/30;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.2),
+      0 0 0 1px rgba(6, 182, 212, 0.06) inset;
+  }
+
+  .card-pro:hover {
+    @apply border-accent/40;
+    box-shadow:
+      0 12px 48px rgba(0, 0, 0, 0.3),
+      0 0 0 1px rgba(6, 182, 212, 0.1) inset,
+      0 0 30px rgba(6, 182, 212, 0.08);
+  }
+}
+
+/* ==================== ANIMATIONS ==================== */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(6, 182, 212, 0.5);
+  }
+}
+
+@layer utilities {
+  .animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out;
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+}
+
+/* ==================== FOCUS STATES - ACCESSIBILITY ==================== */
+@layer base {
+  *:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  button:focus-visible,
+  a:focus-visible {
+    @apply ring-2 ring-accent ring-offset-2 ring-offset-background;
+  }
+}
+
+/* ==================== PAGE TRANSITIONS ==================== */
+@layer utilities {
+  .page-transition {
+    @apply transition-all duration-300 ease-in-out;
+  }
+}
+
+/* ==================== LOADING STATES ==================== */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-spinner {
+  @apply inline-block w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full;
+  animation: spin-slow 1s linear infinite;
+}
+
+/* ==================== RESPONSIVE TYPOGRAPHY ==================== */
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold tracking-tight;
+  }
+
+  h1 {
+    @apply text-4xl md:text-5xl lg:text-6xl;
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl lg:text-5xl;
+  }
+
+  h3 {
+    @apply text-2xl md:text-3xl lg:text-4xl;
+  }
+
+  h4 {
+    @apply text-xl md:text-2xl lg:text-3xl;
+  }
+
+  p {
+    @apply leading-7;
+  }
+}
+
+/* ==================== SIDEBAR ACTIVE STATES ==================== */
+@layer components {
+  .sidebar-item-active {
+    @apply bg-sidebar-accent text-sidebar-accent-foreground font-semibold;
+    box-shadow:
+      0 0 20px rgba(6, 182, 212, 0.2),
+      0 0 0 1px rgba(6, 182, 212, 0.1) inset;
+  }
+
+  .sidebar-item-hover {
+    @apply hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground transition-all duration-200;
+  }
+}
+
+/* ==================== TOOLTIP STYLES ==================== */
+@layer components {
+  .tooltip-pro {
+    @apply bg-popover/95 backdrop-blur-sm text-popover-foreground px-3 py-1.5 rounded-lg text-sm font-medium;
+    @apply border border-border/30;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* ==================== BADGE STYLES - GOVERNMENT PROFESSIONAL ==================== */
+@layer components {
+  .badge-cyan {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+    @apply bg-accent/20 text-accent border border-accent/30;
+  }
+
+  .badge-navy {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+    @apply bg-primary/20 text-primary border border-primary/30;
+  }
+
+  .badge-success {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+    @apply bg-green-500/20 text-green-400 border border-green-500/30;
+  }
+
+  .badge-warning {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+    @apply bg-yellow-500/20 text-yellow-400 border border-yellow-500/30;
+  }
+
+  .badge-error {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+    @apply bg-destructive/20 text-destructive border border-destructive/30;
+  }
+}
+
+/* ==================== ANIMATED BACKGROUND - VIETNAM TRANSPORT TECH ==================== */
+
+/* Dark background with gradient mesh */
+.dashboard-bg {
+  position: fixed;
+  inset: 0;
+  background: #030712;
+  overflow: hidden;
+  z-index: 0;
+}
+
+/* Animated gradient mesh overlay */
+.dashboard-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 30%, rgba(10, 36, 99, 0.35) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 35% at 80% 70%, rgba(6, 182, 212, 0.20) 0%, transparent 50%),
+    radial-gradient(ellipse 70% 45% at 50% 90%, rgba(30, 58, 138, 0.25) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 30% at 10% 80%, rgba(14, 116, 144, 0.18) 0%, transparent 50%);
+  animation: techMeshMove 25s ease-in-out infinite;
+  z-index: 1;
+}
+
+@keyframes techMeshMove {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+  33% {
+    opacity: 0.85;
+    transform: scale(1.08) rotate(1deg);
+  }
+  66% {
+    opacity: 0.9;
+    transform: scale(1.05) rotate(-1deg);
+  }
+}
+
+/* Tech grid overlay */
+.dashboard-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(6, 182, 212, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6, 182, 212, 0.025) 1px, transparent 1px);
+  background-size: 80px 80px;
+  animation: gridPulse 20s linear infinite;
+  z-index: 1;
+}
+
+@keyframes gridPulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: translate(0, 0);
+  }
+  50% {
+    opacity: 0.7;
+    transform: translate(40px, 40px);
+  }
+}
+
+/* Animated orbs - Technology particles */
+.tech-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  will-change: transform;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Cyan orb - Top left */
+.tech-orb-1 {
+  width: 600px;
+  height: 600px;
+  top: -180px;
+  left: -180px;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.30) 0%, rgba(14, 116, 144, 0.12) 50%, transparent 100%);
+  animation: techOrbit1 35s ease-in-out infinite;
+}
+
+/* Navy orb - Bottom right */
+.tech-orb-2 {
+  width: 500px;
+  height: 500px;
+  bottom: -150px;
+  right: -150px;
+  background: radial-gradient(circle, rgba(30, 58, 138, 0.25) 0%, rgba(10, 36, 99, 0.18) 50%, transparent 100%);
+  animation: techOrbit2 30s ease-in-out infinite;
+}
+
+/* Tech blue orb - Center */
+.tech-orb-3 {
+  width: 400px;
+  height: 400px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.22) 0%, rgba(37, 99, 235, 0.10) 50%, transparent 100%);
+  animation: techOrbit3 40s ease-in-out infinite;
+}
+
+@keyframes techOrbit1 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.7;
+  }
+  25% {
+    transform: translate(60px, 30px) scale(1.1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translate(30px, 80px) scale(1.15);
+    opacity: 0.85;
+  }
+  75% {
+    transform: translate(-30px, 50px) scale(0.95);
+    opacity: 0.75;
+  }
+}
+
+@keyframes techOrbit2 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.65;
+  }
+  33% {
+    transform: translate(-50px, -40px) scale(1.12);
+    opacity: 0.8;
+  }
+  66% {
+    transform: translate(40px, -70px) scale(0.92);
+    opacity: 0.7;
+  }
+}
+
+@keyframes techOrbit3 {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.55;
+  }
+  20% {
+    transform: translate(-45%, -48%) scale(1.08);
+    opacity: 0.7;
+  }
+  40% {
+    transform: translate(-55%, -52%) scale(0.94);
+    opacity: 0.6;
+  }
+  60% {
+    transform: translate(-48%, -55%) scale(1.05);
+    opacity: 0.65;
+  }
+  80% {
+    transform: translate(-52%, -45%) scale(1.02);
+    opacity: 0.58;
+  }
+}
+
+/* Content wrapper above background */
+.dashboard-content {
+  position: relative;
+  z-index: 10;
+  min-height: 100vh;
 }

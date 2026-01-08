@@ -23,7 +23,7 @@ export default function ProtectedRoute({ children, requireAdmin = false }: Prote
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #030712 0%, #0A1628 50%, #0A2463 100%)',
       }}>
         <div style={{
           width: '60px',

@@ -22,28 +22,61 @@ const RTSPLiveStream = ({ streamName = "camera_live" }: RTSPLiveStreamProps) => 
     try {
       setError(null);
       const ws = new WebSocket(`ws://localhost:8000/ws/rtsp/${streamName}`);
+      ws.binaryType = "arraybuffer"; // Set binary type để nhận ArrayBuffer
 
       ws.onopen = () => {
         console.log("✅ RTSP WebSocket connected");
         setIsConnected(true);
+        setError(null);
       };
 
       ws.onmessage = (event) => {
-        if (event.data instanceof Blob) {
-          const url = URL.createObjectURL(event.data);
-          imgRef.current.onload = () => {
-            const canvas = canvasRef.current;
-            if (canvas) {
-              const ctx = canvas.getContext("2d");
-              if (ctx) {
-                canvas.width = imgRef.current.width;
-                canvas.height = imgRef.current.height;
-                ctx.drawImage(imgRef.current, 0, 0);
+        try {
+          // Backend gửi binary JPEG frames
+          if (event.data instanceof ArrayBuffer) {
+            // Convert ArrayBuffer to Blob
+            const blob = new Blob([event.data], { type: "image/jpeg" });
+            const url = URL.createObjectURL(blob);
+
+            imgRef.current.onload = () => {
+              const canvas = canvasRef.current;
+              if (canvas) {
+                const ctx = canvas.getContext("2d");
+                if (ctx) {
+                  canvas.width = imgRef.current.width;
+                  canvas.height = imgRef.current.height;
+                  ctx.drawImage(imgRef.current, 0, 0);
+                }
               }
-            }
-            URL.revokeObjectURL(url);
-          };
-          imgRef.current.src = url;
+              URL.revokeObjectURL(url);
+            };
+
+            imgRef.current.onerror = () => {
+              console.error("Failed to load image");
+              URL.revokeObjectURL(url);
+            };
+
+            imgRef.current.src = url;
+          } else if (event.data instanceof Blob) {
+            // Fallback nếu nhận Blob trực tiếp
+            const url = URL.createObjectURL(event.data);
+            imgRef.current.onload = () => {
+              const canvas = canvasRef.current;
+              if (canvas) {
+                const ctx = canvas.getContext("2d");
+                if (ctx) {
+                  canvas.width = imgRef.current.width;
+                  canvas.height = imgRef.current.height;
+                  ctx.drawImage(imgRef.current, 0, 0);
+                }
+              }
+              URL.revokeObjectURL(url);
+            };
+            imgRef.current.src = url;
+          }
+        } catch (err) {
+          console.error("Error processing frame:", err);
+          setError("Lỗi xử lý khung hình");
         }
       };
 

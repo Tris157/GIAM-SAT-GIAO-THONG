@@ -1,0 +1,30 @@
+{
+  "camera_name": "camera_live",
+  "rtsp_url": "rtsp://iocqnm:Quangnam$ioc2020@113.174.246.181:554/h264/ch1/main/av_stream",
+  "timestamp": "2026-01-07T03:12:45.098049",
+  "traffic_light_roi": {
+    "x": 319,
+    "y": 448,
+    "width": 1412,
+    "height": 621,
+    "points": [
+      [
+        1705,
+        448
+      ],
+      [
+        945,
+        459
+      ],
+      [
+        319,
+        1066
+      ],
+      [
+        1731,
+        1069
+      ]
+    ]
+  },
+  "stop_line_y": 446
+}

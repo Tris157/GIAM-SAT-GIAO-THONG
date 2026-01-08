@@ -110,129 +110,145 @@ export default function ViolationsOverview() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Tổng vi phạm */}
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground font-medium">
-                  Tổng vi phạm
-                </p>
-                <p className="text-3xl font-bold mt-2">{stats.total}</p>
-              </div>
-              <div className="size-12 rounded-full bg-destructive/10 flex items-center justify-center">
-                <AlertTriangle className="size-6 text-destructive" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Chưa xử lý */}
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground font-medium">
-                  Chưa xử lý
-                </p>
-                <p className="text-3xl font-bold mt-2 text-warning">
-                  {stats.unprocessed}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Cần xử lý ngay
-                </p>
-              </div>
-              <div className="size-12 rounded-full bg-warning/10 flex items-center justify-center">
-                <Clock className="size-6 text-warning" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Đã xử lý */}
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground font-medium">
-                  Đã xử lý
-                </p>
-                <p className="text-3xl font-bold mt-2 text-success">
-                  {stats.processed}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Đã hoàn thành
-                </p>
-              </div>
-              <div className="size-12 rounded-full bg-success/10 flex items-center justify-center">
-                <CheckCircle className="size-6 text-success" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Hôm nay */}
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground font-medium">
-                  Vi phạm hôm nay
-                </p>
-                <p className="text-3xl font-bold mt-2">{stats.todayCount}</p>
-                <div className="flex items-center gap-1 mt-1">
-                  {stats.trendPercentage >= 0 ? (
-                    <TrendingUp className="size-4 text-destructive" />
-                  ) : (
-                    <TrendingDown className="size-4 text-success" />
-                  )}
-                  <span
-                    className={`text-sm font-medium ${
-                      stats.trendPercentage >= 0
-                        ? 'text-destructive'
-                        : 'text-success'
-                    }`}
-                  >
-                    {Math.abs(stats.trendPercentage).toFixed(1)}%
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    so với hôm qua
-                  </span>
+        <div className="animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+          <Card className="glass-card glass-card-hover border-border/30 hover:border-accent/40 transition-all duration-300">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground font-semibold uppercase tracking-wider">
+                    Tổng vi phạm
+                  </p>
+                  <p className="text-3xl font-bold mt-2 text-gradient-cyan">{stats.total}</p>
+                </div>
+                <div className="size-14 rounded-2xl bg-destructive/10 flex items-center justify-center relative group">
+                  <div className="absolute inset-0 bg-destructive/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100"></div>
+                  <AlertTriangle className="size-7 text-destructive relative z-10 group-hover:scale-110 transition-transform duration-300" />
                 </div>
               </div>
-              <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <AlertTriangle className="size-6 text-primary" />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Chưa xử lý */}
+        <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+          <Card className="glass-card glass-card-hover border-border/30 hover:border-yellow-500/40 transition-all duration-300">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground font-semibold uppercase tracking-wider">
+                    Chưa xử lý
+                  </p>
+                  <p className="text-3xl font-bold mt-2 text-yellow-400">
+                    {stats.unprocessed}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                    <span className="inline-block size-1.5 rounded-full bg-yellow-400 animate-pulse"></span>
+                    Cần xử lý ngay
+                  </p>
+                </div>
+                <div className="size-14 rounded-2xl bg-yellow-500/10 flex items-center justify-center relative group">
+                  <div className="absolute inset-0 bg-yellow-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100"></div>
+                  <Clock className="size-7 text-yellow-400 relative z-10 group-hover:scale-110 transition-transform duration-300" />
+                </div>
               </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Đã xử lý */}
+        <div className="animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+          <Card className="glass-card glass-card-hover border-border/30 hover:border-green-500/40 transition-all duration-300">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground font-semibold uppercase tracking-wider">
+                    Đã xử lý
+                  </p>
+                  <p className="text-3xl font-bold mt-2 text-green-400">
+                    {stats.processed}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                    <CheckCircle className="size-3 text-green-400" />
+                    Đã hoàn thành
+                  </p>
+                </div>
+                <div className="size-14 rounded-2xl bg-green-500/10 flex items-center justify-center relative group">
+                  <div className="absolute inset-0 bg-green-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100"></div>
+                  <CheckCircle className="size-7 text-green-400 relative z-10 group-hover:scale-110 transition-transform duration-300" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Hôm nay */}
+        <div className="animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+          <Card className="glass-card glass-card-hover border-border/30 hover:border-accent/40 transition-all duration-300">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground font-semibold uppercase tracking-wider">
+                    Vi phạm hôm nay
+                  </p>
+                  <p className="text-3xl font-bold mt-2 text-accent">{stats.todayCount}</p>
+                  <div className="flex items-center gap-1 mt-1">
+                    {stats.trendPercentage >= 0 ? (
+                      <TrendingUp className="size-4 text-destructive" />
+                    ) : (
+                      <TrendingDown className="size-4 text-green-400" />
+                    )}
+                    <span
+                      className={`text-sm font-bold ${
+                        stats.trendPercentage >= 0
+                          ? 'text-destructive'
+                          : 'text-green-400'
+                      }`}
+                    >
+                      {Math.abs(stats.trendPercentage).toFixed(1)}%
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      so với hôm qua
+                    </span>
+                  </div>
+                </div>
+                <div className="size-14 rounded-2xl bg-accent/10 flex items-center justify-center relative group">
+                  <div className="absolute inset-0 bg-accent/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100"></div>
+                  <AlertTriangle className="size-7 text-accent relative z-10 group-hover:scale-110 transition-transform duration-300 animate-pulse-glow" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+        <Card className="glass-card border-accent/20 glow-effect">
+          <CardHeader>
+            <CardTitle className="text-xl font-bold text-gradient-cyan">Hành động nhanh</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-3">
+              <Link to="/violations">
+                <Button className="btn-primary group">
+                  <AlertTriangle className="size-4 group-hover:scale-110 transition-transform" />
+                  Xem danh sách vi phạm
+                  <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+              <Link to="/violations?tab=statistics">
+                <Button variant="outline" className="border-accent/30 hover:border-accent hover:bg-accent/10 transition-all">
+                  Xem thống kê chi tiết
+                  <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Hành động nhanh</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-3">
-            <Link to="/violations">
-              <Button variant="default">
-                <AlertTriangle className="size-4" />
-                Xem danh sách vi phạm
-                <ArrowRight className="size-4" />
-              </Button>
-            </Link>
-            <Link to="/violations?tab=statistics">
-              <Button variant="outline">
-                Xem thống kê chi tiết
-                <ArrowRight className="size-4" />
-              </Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

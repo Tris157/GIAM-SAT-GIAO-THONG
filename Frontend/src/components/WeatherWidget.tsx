@@ -169,9 +169,9 @@ const WeatherWidget = () => {
 
   if (loading) {
     return (
-      <Card className="glass border border-white/10 shadow-2xl">
+      <Card className="glass-card border border-border/20 shadow-2xl backdrop-blur-2xl bg-card/60">
         <CardContent className="flex items-center justify-center h-64">
-          <RefreshCw className="h-8 w-8 animate-spin text-blue-400" />
+          <RefreshCw className="h-8 w-8 animate-spin text-accent" />
         </CardContent>
       </Card>
     );
@@ -187,26 +187,26 @@ const WeatherWidget = () => {
       className="space-y-4"
     >
       {/* Current Weather Card */}
-      <Card className="glass border border-white/10 shadow-2xl overflow-hidden">
-        <CardHeader className="border-b border-white/10">
+      <Card className="glass-card glass-card-hover border border-border/20 shadow-2xl backdrop-blur-2xl bg-card/60 overflow-hidden">
+        <CardHeader className="border-b border-border/20">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center space-x-2 text-lg">
               <motion.div
                 animate={{ rotate: [0, 360] }}
                 transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
               >
-                <Cloud className="h-5 w-5 text-blue-400" />
+                <Cloud className="h-5 w-5 text-accent" />
               </motion.div>
-              <span className="gradient-text">Thời Tiết Hiện Tại</span>
+              <span className="text-gradient-cyan">Thời Tiết Hiện Tại</span>
             </CardTitle>
             <motion.button
               whileHover={{ scale: 1.1, rotate: 180 }}
               whileTap={{ scale: 0.9 }}
               onClick={fetchWeather}
-              className="p-2 glass rounded-lg hover:bg-white/10 transition-all"
+              className="p-2 glass-card rounded-lg hover:bg-accent/10 transition-all border border-border/20"
               disabled={isRefreshing}
             >
-              <RefreshCw className={`h-4 w-4 text-blue-400 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-4 w-4 text-accent ${isRefreshing ? 'animate-spin' : ''}`} />
             </motion.button>
           </div>
         </CardHeader>
@@ -222,21 +222,21 @@ const WeatherWidget = () => {
                   {getWeatherIcon(currentWeather.weather_code, currentWeather.icon)}
                 </motion.div>
                 <div>
-                  <h2 className="text-5xl font-bold text-white">
+                  <h2 className="text-5xl font-bold text-gradient-cyan">
                     {currentWeather.temperature}°C
                   </h2>
-                  <p className="text-gray-400 mt-1 capitalize">
+                  <p className="text-muted-foreground mt-1 capitalize">
                     {currentWeather.description}
                   </p>
-                  <p className="text-sm text-gray-500 flex items-center space-x-1 mt-1">
+                  <p className="text-sm text-muted-foreground flex items-center space-x-1 mt-1">
                     <span>Cảm giác:</span>
-                    <span className="text-blue-400">{currentWeather.feels_like}°C</span>
+                    <span className="text-accent">{currentWeather.feels_like}°C</span>
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-lg font-semibold text-white">{currentWeather.location}</p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-lg font-semibold text-foreground">{currentWeather.location}</p>
+                <p className="text-xs text-muted-foreground mt-1">
                   Cập nhật: {new Date(lastUpdate).toLocaleTimeString("vi-VN")}
                 </p>
                 {currentWeather.demo && (
@@ -251,52 +251,52 @@ const WeatherWidget = () => {
             <div className="col-span-2 grid grid-cols-2 md:grid-cols-4 gap-3">
               <motion.div
                 whileHover={{ scale: 1.05 }}
-                className="glass rounded-lg p-3 border border-white/10"
+                className="glass-card rounded-lg p-3 border border-border/20 backdrop-blur-xl bg-card/40"
               >
-                <div className="flex items-center space-x-2 text-gray-400 mb-1">
-                  <Wind className="h-4 w-4" />
+                <div className="flex items-center space-x-2 text-muted-foreground mb-1">
+                  <Wind className="h-4 w-4 text-accent" />
                   <span className="text-xs">Gió</span>
                 </div>
-                <p className="text-lg font-semibold text-white">
+                <p className="text-lg font-semibold text-accent">
                   {currentWeather.wind_speed} km/h
                 </p>
               </motion.div>
 
               <motion.div
                 whileHover={{ scale: 1.05 }}
-                className="glass rounded-lg p-3 border border-white/10"
+                className="glass-card rounded-lg p-3 border border-border/20 backdrop-blur-xl bg-card/40"
               >
-                <div className="flex items-center space-x-2 text-gray-400 mb-1">
-                  <Droplets className="h-4 w-4" />
+                <div className="flex items-center space-x-2 text-muted-foreground mb-1">
+                  <Droplets className="h-4 w-4 text-accent" />
                   <span className="text-xs">Độ ẩm</span>
                 </div>
-                <p className="text-lg font-semibold text-white">
+                <p className="text-lg font-semibold text-accent">
                   {currentWeather.humidity}%
                 </p>
               </motion.div>
 
               <motion.div
                 whileHover={{ scale: 1.05 }}
-                className="glass rounded-lg p-3 border border-white/10"
+                className="glass-card rounded-lg p-3 border border-border/20 backdrop-blur-xl bg-card/40"
               >
-                <div className="flex items-center space-x-2 text-gray-400 mb-1">
-                  <Eye className="h-4 w-4" />
+                <div className="flex items-center space-x-2 text-muted-foreground mb-1">
+                  <Eye className="h-4 w-4 text-accent" />
                   <span className="text-xs">Tầm nhìn</span>
                 </div>
-                <p className="text-lg font-semibold text-white">
+                <p className="text-lg font-semibold text-accent">
                   {currentWeather.visibility} km
                 </p>
               </motion.div>
 
               <motion.div
                 whileHover={{ scale: 1.05 }}
-                className="glass rounded-lg p-3 border border-white/10"
+                className="glass-card rounded-lg p-3 border border-border/20 backdrop-blur-xl bg-card/40"
               >
-                <div className="flex items-center space-x-2 text-gray-400 mb-1">
-                  <Gauge className="h-4 w-4" />
+                <div className="flex items-center space-x-2 text-muted-foreground mb-1">
+                  <Gauge className="h-4 w-4 text-accent" />
                   <span className="text-xs">Áp suất</span>
                 </div>
-                <p className="text-lg font-semibold text-white">
+                <p className="text-lg font-semibold text-accent">
                   {currentWeather.pressure} hPa
                 </p>
               </motion.div>
@@ -306,11 +306,11 @@ const WeatherWidget = () => {
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="col-span-2 glass rounded-lg p-3 border border-blue-400/50"
+                className="col-span-2 glass-card rounded-lg p-3 border border-accent/50 backdrop-blur-xl bg-card/40"
               >
                 <div className="flex items-center space-x-2">
-                  <CloudRain className="h-5 w-5 text-blue-400" />
-                  <span className="text-white font-medium">
+                  <CloudRain className="h-5 w-5 text-accent" />
+                  <span className="text-foreground font-medium">
                     Lượng mưa: {currentWeather.rain_1h} mm/h
                   </span>
                 </div>
@@ -350,11 +350,11 @@ const WeatherWidget = () => {
 
       {/* 5-Day Forecast */}
       {forecast.length > 0 && (
-        <Card className="glass border border-white/10 shadow-2xl">
-          <CardHeader className="border-b border-white/10">
+        <Card className="glass-card glass-card-hover border border-border/20 shadow-2xl backdrop-blur-2xl bg-card/60">
+          <CardHeader className="border-b border-border/20">
             <CardTitle className="flex items-center space-x-2 text-lg">
-              <Cloud className="h-5 w-5 text-purple-400" />
-              <span className="gradient-text">Dự Báo 5 Ngày</span>
+              <Cloud className="h-5 w-5 text-accent" />
+              <span className="text-gradient-cyan">Dự Báo 5 Ngày</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
@@ -366,22 +366,22 @@ const WeatherWidget = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                   whileHover={{ scale: 1.05, y: -5 }}
-                  className="glass rounded-lg p-3 border border-white/10 text-center hover:border-purple-400/50 transition-all"
+                  className="glass-card rounded-lg p-3 border border-border/20 text-center hover:border-accent/50 transition-all backdrop-blur-xl bg-card/40"
                 >
-                  <p className="text-xs text-gray-400 mb-2">
+                  <p className="text-xs text-muted-foreground mb-2">
                     {index === 0 ? "Hôm nay" : new Date(day.date).toLocaleDateString("vi-VN", { weekday: "short" })}
                   </p>
                   <div className="flex justify-center mb-2">
                     {getWeatherIcon(800, day.icon)}
                   </div>
-                  <p className="text-sm font-bold text-white mb-1">
+                  <p className="text-sm font-bold text-accent mb-1">
                     {day.temp_max}°
                   </p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-muted-foreground">
                     {day.temp_min}°
                   </p>
                   {day.rain_probability > 20 && (
-                    <div className="flex items-center justify-center space-x-1 mt-2 text-blue-400">
+                    <div className="flex items-center justify-center space-x-1 mt-2 text-accent">
                       <CloudRain className="h-3 w-3" />
                       <span className="text-xs">{day.rain_probability}%</span>
                     </div>
