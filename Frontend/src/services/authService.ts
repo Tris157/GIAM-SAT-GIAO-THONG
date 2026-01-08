@@ -1,9 +1,11 @@
+import { endpoints, trimTrailingSlash } from '../config';
+
 /**
  * Authentication API Service
  * Handles all authentication-related API calls
  */
 
-const API_BASE_URL = 'http://localhost:8000/api/v1/auth';
+const API_BASE_URL = trimTrailingSlash(endpoints.base) + '/api/v1/auth';
 
 export interface UserRegister {
   username: string;

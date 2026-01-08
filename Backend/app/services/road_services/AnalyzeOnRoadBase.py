@@ -194,7 +194,7 @@ class AnalyzeOnRoadBase:
             # Run SpeedEstimator với tracking - sử dụng process() method
             if self.speed_tool:
                 try:
-                    results = self.speed_tool.process(self.frame_predict.copy())
+                    self.speed_tool.estimate_speed(self.frame_predict.copy())
                 except Exception as e:
                     print(f"❌ Error running SpeedEstimator: {e}")
                     pass

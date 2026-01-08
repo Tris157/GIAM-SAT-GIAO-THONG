@@ -16,7 +16,7 @@
 // ============================================================================
 
 // Dòng 6: Hàm loại bỏ trailing slash
-const trimTrailingSlash = (url: string) => url.replace(/\/$/, "");
+export const trimTrailingSlash = (url: string) => url.replace(/\/$/, "");
 // url.replace(/\/$/, ""): Regex remove trailing slash
 // - /\/$/:  Pattern match "/" ở cuối string
 // - "": Replace bằng empty string
@@ -36,7 +36,7 @@ const trimTrailingSlash = (url: string) => url.replace(/\/$/, "");
 
 // Dòng 8-10: HTTP API Base URL
 export const API_HTTP_BASE: string = trimTrailingSlash(
-  (import.meta as any).env?.VITE_API_HTTP_BASE ?? "http://localhost:8000/"
+   (import.meta as any).env?.VITE_API_HTTP_BASE ?? "http://localhost:8000/"
 );
 // API_HTTP_BASE: Base URL cho REST API endpoints
 //
@@ -69,7 +69,7 @@ export const API_HTTP_BASE: string = trimTrailingSlash(
 
 // Dòng 12-14: WebSocket API Base URL
 export const API_WS_BASE: string = trimTrailingSlash(
-  (import.meta as any).env?.VITE_API_WS_BASE ?? "ws://localhost:8000/"
+   (import.meta as any).env?.VITE_API_WS_BASE ?? "ws://localhost:8000/"
 );
 // API_WS_BASE: Base URL cho WebSocket connections
 //
@@ -103,110 +103,110 @@ export const API_WS_BASE: string = trimTrailingSlash(
 
 // Dòng 16-24: Centralized endpoints
 export const endpoints = {
-  // Base URL cho API (dùng trong violationService.ts)
-  base: API_HTTP_BASE,
-  // Endpoints.base = "http://localhost:8000"
-  // Dùng trong: violationService.ts để construct full URLs
-  // VD: `${endpoints.base}/api/v1/violations/list`
+   // Base URL cho API (dùng trong violationService.ts)
+   base: API_HTTP_BASE,
+   // Endpoints.base = "http://localhost:8000"
+   // Dùng trong: violationService.ts để construct full URLs
+   // VD: `${endpoints.base}/api/v1/violations/list`
 
-  // Dòng 18: REST API - Lấy danh sách roads
-  roadNames: `${API_HTTP_BASE}/roads_name`,
-  // Full URL: "http://localhost:8000/roads_name"
-  // GET /roads_name: Trả về list tên đường/camera available
-  //
-  // RESPONSE EXAMPLE:
-  // ["camera_live", "camera_highway", "camera_intersection_1"]
+   // Dòng 18: REST API - Lấy danh sách roads
+   roadNames: `${API_HTTP_BASE}/roads_name`,
+   // Full URL: "http://localhost:8000/roads_name"
+   // GET /roads_name: Trả về list tên đường/camera available
+   //
+   // RESPONSE EXAMPLE:
+   // ["camera_live", "camera_highway", "camera_intersection_1"]
 
-  // Dòng 19-20: WebSocket - Frames stream
-  framesWs: (roadName: string) => {
-    // Nếu là camera_live (RTSP), dùng endpoint RTSP
-    if (roadName === "camera_live") {
-      return `${API_WS_BASE}/ws/rtsp/${encodeURIComponent(roadName)}`;
-    }
-    // Các video test khác dùng endpoint frames thông thường
-    return `${API_WS_BASE}/ws/frames/${encodeURIComponent(roadName)}`;
-  },
-  // framesWs: Function trả về WebSocket URL
-  //
-  // PARAMETERS:
-  // - roadName: Tên camera/road (ví dụ: "camera_live")
-  //
-  // RETURN:
-  // Full WebSocket URL: "ws://localhost:8000/ws/frames/camera_live"
-  //
-  // encodeURIComponent():
-  // - Encode special characters trong URL
-  // - VD: "camera live" → "camera%20live"
-  // - Tránh lỗi nếu roadName có space/special chars
-  //
-  // CÁCH DÙNG:
-  // const wsUrl = endpoints.framesWs("camera_live");
-  // const ws = new WebSocket(wsUrl);
-  // ws.onmessage = (event) => {
-  //   // Nhận frames từ backend
-  //   const frameData = event.data;
-  // }
-  //
-  // DATA FORMAT:
-  // Backend gửi: Base64 encoded JPEG frames
-  // Frontend nhận: Display trong <img> tag
+   // Dòng 19-20: WebSocket - Frames stream
+   framesWs: (roadName: string) => {
+      // Nếu là camera_live (RTSP), dùng endpoint RTSP
+      if (roadName === "camera_live") {
+         return `${API_WS_BASE}/ws/rtsp/${encodeURIComponent(roadName)}`;
+      }
+      // Các video test khác dùng endpoint frames thông thường
+      return `${API_WS_BASE}/ws/frames/${encodeURIComponent(roadName)}`;
+   },
+   // framesWs: Function trả về WebSocket URL
+   //
+   // PARAMETERS:
+   // - roadName: Tên camera/road (ví dụ: "camera_live")
+   //
+   // RETURN:
+   // Full WebSocket URL: "ws://localhost:8000/ws/frames/camera_live"
+   //
+   // encodeURIComponent():
+   // - Encode special characters trong URL
+   // - VD: "camera live" → "camera%20live"
+   // - Tránh lỗi nếu roadName có space/special chars
+   //
+   // CÁCH DÙNG:
+   // const wsUrl = endpoints.framesWs("camera_live");
+   // const ws = new WebSocket(wsUrl);
+   // ws.onmessage = (event) => {
+   //   // Nhận frames từ backend
+   //   const frameData = event.data;
+   // }
+   //
+   // DATA FORMAT:
+   // Backend gửi: Base64 encoded JPEG frames
+   // Frontend nhận: Display trong <img> tag
 
-  // Dòng 21-22: WebSocket - Info stream
-  infoWs: (roadName: string) =>
-    `${API_WS_BASE}/ws/info/${encodeURIComponent(roadName)}`,
-  // infoWs: Function trả về WebSocket URL cho detection info
-  //
-  // PARAMETERS:
-  // - roadName: Tên camera (ví dụ: "camera_live")
-  //
-  // RETURN:
-  // "ws://localhost:8000/ws/info/camera_live"
-  //
-  // DATA FORMAT:
-  // Backend gửi JSON với detection data:
-  // {
-  //   "total_vehicles": 15,
-  //   "count_car": 10,
-  //   "count_motor": 5,
-  //   "detections": [
-  //     {"class": "car", "confidence": 0.95, "bbox": [...]},
-  //     ...
-  //   ]
-  // }
-  //
-  // CÁCH DÙNG:
-  // const wsUrl = endpoints.infoWs("camera_live");
-  // const ws = new WebSocket(wsUrl);
-  // ws.onmessage = (event) => {
-  //   const data = JSON.parse(event.data);
-  //   console.log(`Detected ${data.total_vehicles} vehicles`);
-  // }
+   // Dòng 21-22: WebSocket - Info stream
+   infoWs: (roadName: string) =>
+      `${API_WS_BASE}/ws/info/${encodeURIComponent(roadName)}`,
+   // infoWs: Function trả về WebSocket URL cho detection info
+   //
+   // PARAMETERS:
+   // - roadName: Tên camera (ví dụ: "camera_live")
+   //
+   // RETURN:
+   // "ws://localhost:8000/ws/info/camera_live"
+   //
+   // DATA FORMAT:
+   // Backend gửi JSON với detection data:
+   // {
+   //   "total_vehicles": 15,
+   //   "count_car": 10,
+   //   "count_motor": 5,
+   //   "detections": [
+   //     {"class": "car", "confidence": 0.95, "bbox": [...]},
+   //     ...
+   //   ]
+   // }
+   //
+   // CÁCH DÙNG:
+   // const wsUrl = endpoints.infoWs("camera_live");
+   // const ws = new WebSocket(wsUrl);
+   // ws.onmessage = (event) => {
+   //   const data = JSON.parse(event.data);
+   //   console.log(`Detected ${data.total_vehicles} vehicles`);
+   // }
 
-  // Dòng 23: WebSocket - Chat với AI
-  chatWs: `${API_WS_BASE}/ws/chat`,
-  // chatWs: WebSocket URL cho chatbot
-  //
-  // Full URL: "ws://localhost:8000/ws/chat"
-  //
-  // FLOW:
-  // 1. Frontend connect: new WebSocket(endpoints.chatWs)
-  // 2. Frontend gửi: ws.send(JSON.stringify({message: "Hôm nay có bao nhiêu vi phạm?"}))
-  // 3. Backend xử lý với AI (GPT/Claude)
-  // 4. Backend gửi: {response: "Hôm nay có 15 vi phạm..."}
-  // 5. Frontend display response
-  //
-  // MESSAGE FORMAT:
-  // Send:
-  // {
-  //   "message": "User question here",
-  //   "session_id": "unique-session-id"
-  // }
-  //
-  // Receive:
-  // {
-  //   "response": "AI answer here",
-  //   "data": {...}  // Optional structured data
-  // }
+   // Dòng 23: WebSocket - Chat với AI
+   chatWs: `${API_WS_BASE}/ws/chat`,
+   // chatWs: WebSocket URL cho chatbot
+   //
+   // Full URL: "ws://localhost:8000/ws/chat"
+   //
+   // FLOW:
+   // 1. Frontend connect: new WebSocket(endpoints.chatWs)
+   // 2. Frontend gửi: ws.send(JSON.stringify({message: "Hôm nay có bao nhiêu vi phạm?"}))
+   // 3. Backend xử lý với AI (GPT/Claude)
+   // 4. Backend gửi: {response: "Hôm nay có 15 vi phạm..."}
+   // 5. Frontend display response
+   //
+   // MESSAGE FORMAT:
+   // Send:
+   // {
+   //   "message": "User question here",
+   //   "session_id": "unique-session-id"
+   // }
+   //
+   // Receive:
+   // {
+   //   "response": "AI answer here",
+   //   "data": {...}  // Optional structured data
+   // }
 };
 
 

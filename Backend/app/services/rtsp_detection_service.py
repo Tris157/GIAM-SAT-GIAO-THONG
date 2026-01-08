@@ -2,6 +2,9 @@ import cv2
 import asyncio
 import threading
 import time
+import os
+import re
+from urllib.parse import quote, urlparse, urlunparse
 from typing import Optional, Dict, List
 import numpy as np
 from ultralytics import YOLO, solutions
@@ -12,11 +15,51 @@ from app.core.config import SettingMetricTransport
 conf_settings = SettingMetricTransport()
 
 
+def encode_rtsp_url(rtsp_url: str) -> str:
+    """
+    Tự động URL encode password trong RTSP URL để xử lý ký tự đặc biệt như $ # @ v.v.
+    Ví dụ: rtsp://user:Pass$123@ip:554/path -> rtsp://user:Pass%24123@ip:554/path
+    """
+    if not rtsp_url or not rtsp_url.startswith('rtsp://'):
+        return rtsp_url
+    
+    try:
+        # Parse URL để lấy các phần
+        # Format: rtsp://username:password@host:port/path
+        match = re.match(r'rtsp://([^:]+):([^@]+)@(.+)', rtsp_url)
+        if match:
+            username = match.group(1)
+            password = match.group(2)
+            rest = match.group(3)  # host:port/path
+            
+            # Xóa escaped backslash từ .env (ví dụ: \$ -> $)
+            password = password.replace('\\$', '$').replace('\\#', '#').replace('\\@', '@')
+            
+            # URL encode password (giữ nguyên nếu đã encode)
+            if '%' not in password:  # Chưa encode
+                encoded_password = quote(password, safe='')
+            else:
+                encoded_password = password
+            
+            # Reconstruct URL
+            encoded_url = f"rtsp://{username}:{encoded_password}@{rest}"
+            if encoded_url != rtsp_url:
+                print(f"🔐 Password đã được URL-encode")
+            return encoded_url
+        else:
+            # Không có credentials hoặc format khác
+            return rtsp_url
+    except Exception as e:
+        print(f"⚠️ Không thể encode URL: {e}")
+        return rtsp_url
+
+
 class RTSPDetectionService:
     """Service to handle RTSP camera streaming with YOLO detection using DEDICATED THREAD"""
 
     def __init__(self, rtsp_url: str, camera_name: str = "camera_live", model_path: str = "./app/ai_models/model N/original model/best.pt", meter_per_pixel: float = 0.04, region: Optional[np.ndarray] = None):
-        self.rtsp_url = rtsp_url
+        # Tự động URL encode password trong RTSP URL
+        self.rtsp_url = encode_rtsp_url(rtsp_url)
         self.camera_name = camera_name
         self.model_path = model_path
         self.meter_per_pixel = meter_per_pixel
@@ -103,6 +146,9 @@ class RTSPDetectionService:
         """Connect to RTSP stream and START BACKGROUND THREAD"""
         try:
             print(f"🔗 Attempting to connect to RTSP: {self.rtsp_url[:50]}...")
+
+            # Force TCP transport for RTSP (Critical for some external cameras)
+            os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp|timeout;60000000"
 
             # Create VideoCapture with RTSP options for better stability
             self.cap = cv2.VideoCapture(self.rtsp_url, cv2.CAP_FFMPEG)
@@ -198,11 +244,7 @@ class RTSPDetectionService:
             if self.speed_tool:
                 try:
                     # Run SpeedEstimator with tracking - returns results object
-                    results = self.speed_tool.process(frame.copy())
-
-                    # Get processed frame with annotations
-                    if results and hasattr(results, 'plot_im'):
-                        processed_frame = results.plot_im
+                    processed_frame = self.speed_tool.estimate_speed(frame.copy())
 
                     # Extract tracking data from internal attributes
                     if hasattr(self.speed_tool, 'track_data') and self.speed_tool.track_data is not None:

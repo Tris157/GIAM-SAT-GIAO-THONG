@@ -1,14 +1,46 @@
 import cv2
 import asyncio
+import os
+import re
+from urllib.parse import quote
 from typing import Optional
 import numpy as np
+
+
+def encode_rtsp_url(rtsp_url: str) -> str:
+    """
+    Tự động URL encode password trong RTSP URL để xử lý ký tự đặc biệt như $ # @ v.v.
+    """
+    if not rtsp_url or not rtsp_url.startswith('rtsp://'):
+        return rtsp_url
+    
+    try:
+        match = re.match(r'rtsp://([^:]+):([^@]+)@(.+)', rtsp_url)
+        if match:
+            username = match.group(1)
+            password = match.group(2)
+            rest = match.group(3)
+            
+            # Xóa escaped backslash (ví dụ: \$ -> $)
+            password = password.replace('\\$', '$').replace('\\#', '#').replace('\\@', '@')
+            
+            if '%' not in password:
+                encoded_password = quote(password, safe='')
+            else:
+                encoded_password = password
+            
+            return f"rtsp://{username}:{encoded_password}@{rest}"
+        return rtsp_url
+    except:
+        return rtsp_url
 
 
 class RTSPStreamService:
     """Service to handle RTSP camera streaming"""
 
     def __init__(self, rtsp_url: str):
-        self.rtsp_url = rtsp_url
+        # Tự động URL encode password
+        self.rtsp_url = encode_rtsp_url(rtsp_url)
         self.cap: Optional[cv2.VideoCapture] = None
         self.is_running = False
         self.current_frame: Optional[np.ndarray] = None
@@ -17,7 +49,10 @@ class RTSPStreamService:
     def connect(self) -> bool:
         """Connect to RTSP stream"""
         try:
-            self.cap = cv2.VideoCapture(self.rtsp_url)
+            # Force TCP transport for RTSP
+            os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp|timeout;60000000"
+            
+            self.cap = cv2.VideoCapture(self.rtsp_url, cv2.CAP_FFMPEG)
 
             # Set buffer size to reduce latency
             self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)

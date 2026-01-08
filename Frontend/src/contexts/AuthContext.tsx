@@ -29,28 +29,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let isMounted = true; // Prevent memory leaks from async operations
 
     const loadUser = async () => {
+      console.log('🔄 AuthContext: Starting loadUser...');
       try {
-        // If not authenticated (no token), stop loading immediately
         if (!authService.isAuthenticated()) {
+          console.log('ℹ️ AuthContext: No token found, user is unauthenticated');
           return;
         }
 
-        // Create a timeout promise (15 seconds - Relaxed)
+        console.log('⏳ AuthContext: Token found, fetching user info...');
         const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Auth check timeout')), 15000)
         );
 
-        // Race between fetching user and timeout
         const currentUser = await Promise.race([
           authService.getCurrentUser(),
           timeoutPromise
         ]);
 
+        console.log('✅ AuthContext: User loaded successfully:', (currentUser as User).username);
         if (isMounted) {
           setUser(currentUser as User);
         }
       } catch (error) {
-        console.warn('Auth check failed or timed out:', error);
+        console.warn('❌ AuthContext: Auth check failed or timed out:', error);
         if (isMounted) {
           authService.logout();
           setUser(null);
@@ -58,6 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } finally {
         if (isMounted) {
           setIsLoading(false);
+          console.log('🏁 AuthContext: loadUser completed, isLoading = false');
         }
       }
     };
@@ -71,25 +73,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (credentials: UserLogin) => {
+    console.log('🔑 AuthContext: Starting login for:', credentials.username);
     setIsLoading(true);
     try {
-      // Create a timeout promise (15 seconds for login)
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Login request timed out')), 15000)
       );
 
-      // Race between login request and timeout
       const response = await Promise.race([
         authService.login(credentials),
         timeoutPromise
-      ]) as any; // Cast to any or AuthResponse to avoid TS issues with race
+      ]) as any;
 
+      console.log('✅ AuthContext: Login successful, setting user:', response.user.username);
       setUser(response.user);
     } catch (error) {
-      console.error("Login failed:", error);
-      throw error; // Re-throw to let the UI handler know (e.g. show toast)
+      console.error("❌ AuthContext: Login failed:", error);
+      throw error;
     } finally {
       setIsLoading(false);
+      console.log('🏁 AuthContext: login completed, isLoading = false');
     }
   };
 
